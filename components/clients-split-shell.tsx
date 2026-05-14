@@ -130,7 +130,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   if (prototypePhase === "checking") {
     return (
-      <div className="flex h-[calc(100dvh-1rem)] min-h-0 flex-1 items-center justify-center text-sm text-fora-muted lg:h-dvh">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-sm text-fora-muted">
         Loading…
       </div>
     );
@@ -138,14 +138,14 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   if (prototypePhase === "gate") {
     return (
-      <div className="flex h-[calc(100dvh-1rem)] min-h-0 flex-col bg-fora-app lg:h-dvh">
+      <div className="flex min-h-0 flex-1 flex-col bg-[#FAF7F2]">
         <ClientsPrototypeEntrance onChoose={handlePrototypeChosen} />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100dvh-1rem)] min-h-0 flex-col lg:h-dvh">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Top bar — hidden on mobile when viewing a client detail */}
       <header
         className={cn(
@@ -174,33 +174,35 @@ export function ClientsSplitShell({ clients, children }: Props) {
       </header>
 
       {isSplit ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:px-8">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:gap-0 lg:px-8">
           <aside
             className={cn(
-              "flex max-h-full min-h-0 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:max-h-none lg:flex-none lg:basis-[360px] lg:self-start",
+              "flex max-h-full min-h-0 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:max-h-none lg:flex-none lg:basis-[360px] lg:rounded-r-none lg:border-r-0",
               hasSelection && "hidden lg:flex"
             )}
           >
             <div className="shrink-0 border-b border-fora-border px-4 py-3">
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3 size-[16px] -translate-y-1/2 text-fora-muted"
-                  strokeWidth={1.75}
-                  aria-hidden
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <Search
+                    className="pointer-events-none absolute top-1/2 left-3 size-[16px] -translate-y-1/2 text-fora-muted"
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
+                  <Input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search by name, email, or city…"
+                    aria-label="Search clients"
+                    className="h-10 w-full rounded-lg border-fora-border bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted"
+                  />
+                </div>
+                <ClientSortMenu
+                  value={sort}
+                  onChange={setSort}
+                  variant="icon"
+                  triggerClassName="h-10 w-10 shrink-0 rounded-lg border border-fora-border bg-white text-fora-muted hover:bg-fora-app"
                 />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search by name, email, or city…"
-                  aria-label="Search clients"
-                  className="h-10 rounded-lg border-fora-border bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted"
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-[12px] text-fora-muted tabular-nums">
-                  {visible.length} {visible.length === 1 ? "client" : "clients"}
-                </p>
-                <ClientSortMenu value={sort} onChange={setSort} variant="icon" />
               </div>
             </div>
 
@@ -221,7 +223,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
           <section
             className={cn(
-              "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white",
+              "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:rounded-l-none",
               !hasSelection && "hidden lg:flex"
             )}
           >

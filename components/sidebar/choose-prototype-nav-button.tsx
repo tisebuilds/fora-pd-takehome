@@ -23,19 +23,24 @@ export function ChoosePrototypeNavButton({ collapsed }: { collapsed: boolean }) 
     <button
       type="button"
       onClick={handleClick}
-      title={collapsed ? "Choose prototype…" : undefined}
+      title={collapsed ? "Switch layout" : undefined}
       className={cn(
-        "w-full rounded-[4px] text-[13px] font-normal text-fora-link outline-none transition-opacity duration-200 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
-        collapsed ? "flex justify-center px-0 py-2.5" : "px-0 py-2 pr-7 pl-8 text-left"
+        "rounded-[4px] text-[13px] font-normal text-orange-700 outline-none transition-opacity duration-200 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+        collapsed
+          ? "flex w-full justify-center px-0 py-2.5"
+          : "inline-flex items-center justify-center gap-3.5 px-2 py-2"
       )}
     >
       {collapsed ? (
         <>
           <LayoutTemplate className="size-[18px] shrink-0" strokeWidth={1.25} aria-hidden />
-          <span className="sr-only">Choose prototype…</span>
+          <span className="sr-only">Switch layout</span>
         </>
       ) : (
-        "Choose prototype…"
+        <>
+          <LayoutTemplate className="size-[18px] shrink-0" strokeWidth={1.25} aria-hidden />
+          Switch layout
+        </>
       )}
     </button>
   );

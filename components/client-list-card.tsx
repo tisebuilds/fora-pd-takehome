@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { CreditCard, Mail, MoreHorizontal, Phone } from "lucide-react";
+import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import type { Client, ClientPhone } from "@/lib/types";
 import {
@@ -14,6 +14,7 @@ import {
   formatPhoneDisplay,
 } from "@/lib/format";
 import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
+import { CreditCardRow } from "@/components/credit-card-row";
 import { Flag } from "@/components/flag";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +64,7 @@ function StatBlock({
 
 export function ClientListCard({ client, onViewDetails }: Props) {
   const [addCreditOpen, setAddCreditOpen] = useState(false);
+  const [creditPanelOpen, setCreditPanelOpen] = useState(false);
   const phone = primaryPhone(client);
   const phoneText = phone ? formatPhoneDisplay(phone) : null;
   const telHref = phone ? phoneToTelHref(phone) : null;
@@ -121,58 +123,106 @@ export function ClientListCard({ client, onViewDetails }: Props) {
   );
 
   return (
-    <article className="flex items-stretch gap-2 rounded-xl border border-[#E5E7EB] bg-white px-3 py-3 sm:gap-3 sm:px-4 sm:py-3.5">
-      {onViewDetails ? (
-        <button type="button" onClick={onViewDetails} className={rowClassName}>
-          {rowBody}
-        </button>
-      ) : (
-        <Link href={profileHref} className={cn(rowClassName, "no-underline")}>
-          {rowBody}
-        </Link>
-      )}
+    <article className="flex flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
+      <div className="flex items-stretch gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-3.5">
+        {onViewDetails ? (
+          <button type="button" onClick={onViewDetails} className={rowClassName}>
+            {rowBody}
+          </button>
+        ) : (
+          <Link href={profileHref} className={cn(rowClassName, "no-underline")}>
+            {rowBody}
+          </Link>
+        )}
 
-      <div className="flex shrink-0 items-center">
-        <Menu.Root>
-          <Menu.Trigger
-            className="inline-flex size-9 items-center justify-center rounded-full bg-transparent text-[#6B7280] transition-colors hover:bg-[#F9F7F2] hover:text-[#111827] aria-expanded:bg-[#F9F7F2]"
-            aria-label={`Actions for ${clientDisplayName(client)}`}
-          >
-            <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
-          </Menu.Trigger>
-          <Menu.Portal>
-            <Menu.Positioner sideOffset={6} align="end">
-              <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
-                {onViewDetails ? (
-                  <Menu.Item onClick={onViewDetails} className={menuItemClass}>
-                    View card details
+        <div className="flex shrink-0 items-center">
+          <Menu.Root>
+            <Menu.Trigger
+              className="inline-flex size-9 items-center justify-center rounded-full bg-transparent text-[#6B7280] transition-colors hover:bg-[#F9F7F2] hover:text-[#111827] aria-expanded:bg-[#F9F7F2]"
+              aria-label={`Actions for ${clientDisplayName(client)}`}
+            >
+              <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner sideOffset={6} align="end">
+                <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                  {onViewDetails ? (
+                    <Menu.Item onClick={onViewDetails} className={menuItemClass}>
+                      <ArrowRight className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                      View client details
+                    </Menu.Item>
+                  ) : (
+                    <Menu.LinkItem href={profileHref} className={menuItemClass} closeOnClick>
+                      <ArrowRight className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                      View client details
+                    </Menu.LinkItem>
+                  )}
+                  <Menu.Item
+                    onClick={() => setCreditPanelOpen(true)}
+                    className={menuItemClass}
+                  >
+                    <Wallet className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                    View credit card details
                   </Menu.Item>
-                ) : (
-                  <Menu.LinkItem href={profileHref} className={menuItemClass} closeOnClick>
-                    View card details
-                  </Menu.LinkItem>
-                )}
-                <Menu.Item onClick={() => setAddCreditOpen(true)} className={menuItemClass}>
-                  <CreditCard className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                  Add credit
-                </Menu.Item>
+                  <Menu.Item onClick={() => setAddCreditOpen(true)} className={menuItemClass}>
+                    <CreditCard className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                    Add credit card
+                  </Menu.Item>
                 {telHref ? (
                   <Menu.LinkItem href={telHref} className={menuItemClass} closeOnClick>
                     <Phone className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     Call
                   </Menu.LinkItem>
                 ) : null}
-                {email ? (
-                  <Menu.LinkItem href={`mailto:${email}`} className={menuItemClass} closeOnClick>
-                    <Mail className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                    Email
-                  </Menu.LinkItem>
-                ) : null}
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.Root>
+                  {email ? (
+                    <Menu.LinkItem href={`mailto:${email}`} className={menuItemClass} closeOnClick>
+                      <Mail className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                      Email
+                    </Menu.LinkItem>
+                  ) : null}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        </div>
       </div>
+
+      <div
+        className={cn(
+          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+          creditPanelOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="min-h-0">
+          <div
+            className="border-t border-[#E5E7EB] px-3 pb-3 pt-3 sm:px-4 sm:pb-3.5 sm:pt-3.5"
+            inert={creditPanelOpen ? undefined : true}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-[11px] font-medium uppercase tracking-wide text-[#6B7280]">
+                Credit cards
+              </h3>
+              <button
+                type="button"
+                className="text-[13px] text-fora-link no-underline hover:opacity-80"
+                onClick={() => setCreditPanelOpen(false)}
+              >
+                Hide
+              </button>
+            </div>
+            {client.creditCards.length === 0 ? (
+              <p className="mt-2 text-[13px] text-[#6B7280]">No credit cards on file.</p>
+            ) : (
+              <div className="mt-2 flex flex-col gap-2">
+                {client.creditCards.map((c) => (
+                  <CreditCardRow key={c.id} card={c} embeddedListWithCopy />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <AddCreditCardDialog open={addCreditOpen} onOpenChange={setAddCreditOpen} />
     </article>
   );

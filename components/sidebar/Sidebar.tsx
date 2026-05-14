@@ -183,8 +183,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
       />
       <div
         className={cn(
-          "shrink-0 border-t border-rule pb-4",
-          collapsed && "px-1.5"
+          "flex shrink-0 items-center justify-center border-t border-rule bg-white py-2.5 pb-4",
+          collapsed ? "px-1.5" : "px-6"
         )}
       >
         <ChoosePrototypeNavButton collapsed={collapsed} />

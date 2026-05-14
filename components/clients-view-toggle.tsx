@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 export type ClientsLayoutView = "split" | "cards";
 
@@ -31,62 +31,123 @@ type EntranceProps = {
   onChoose: (view: ClientsLayoutView) => void;
 };
 
+function SplitLayoutIllustration() {
+  return (
+    <div
+      className="w-full max-w-[220px] rounded-lg bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
+      aria-hidden
+    >
+      <div className="flex gap-2">
+        <div className="flex w-[34%] shrink-0 flex-col justify-between gap-1 py-0.5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-1.5 rounded-[4px] bg-[#EBE2D5]" />
+          ))}
+        </div>
+        <div className="flex min-h-[88px] min-w-0 flex-1 flex-col gap-1">
+          <div className="flex gap-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-1.5 w-3 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+            ))}
+          </div>
+          <div className="h-2 shrink-0 rounded-[4px] bg-[#333333]" />
+          <div className="h-px shrink-0 rounded-full bg-[#EBE2D5]" />
+          <div className="min-h-[28px] flex-1 rounded-[4px] bg-[#EBE2D5]" />
+          <div className="flex shrink-0 gap-1">
+            <div className="h-2 flex-1 rounded-[4px] bg-[#EBE2D5]" />
+            <div className="h-2 flex-1 rounded-[4px] bg-[#EBE2D5]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CardListIllustration() {
+  return (
+    <div
+      className="flex w-full max-w-[220px] flex-col gap-1.5 rounded-lg bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
+      aria-hidden
+    >
+      <div className="flex items-center gap-2">
+        <div className="h-2 min-w-0 flex-1 rounded-[4px] bg-[#333333]" />
+        <div className="h-2 w-5 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+      </div>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 rounded-[4px] bg-[#F5F0E8] px-1.5 py-1.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.03)]"
+        >
+          <div className="size-2.5 shrink-0 rounded-full bg-[#EBE2D5]" />
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <div className="h-1.5 w-[72%] rounded-[4px] bg-[#333333]" />
+            <div className="h-1 w-full rounded-[4px] bg-[#EBE2D5]" />
+          </div>
+          <div className="h-2 w-3.5 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const cardShell =
+  "group flex w-full flex-col overflow-hidden rounded-2xl border border-[#E8E4DE] bg-white text-left shadow-[0_1px_2px_rgb(0_0_0_/_.04)] transition-[border-color,box-shadow] hover:border-[#D4CEC3] hover:shadow-[0_2px_8px_rgb(0_0_0_/_.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#333333]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAF7F2]";
+
 /**
  * Full-screen entry step: reviewer must pick which clients prototype to enter
  * before seeing any list or detail UI.
  */
 export function ClientsPrototypeEntrance({ onChoose }: EntranceProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-16">
-      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-fora-muted">
-        Prototype
-      </p>
-      <h1 className="mt-3 text-center font-sans text-[28px] font-bold leading-tight tracking-tight text-fora-navy sm:text-[34px]">
-        Choose a clients experience
-      </h1>
-      <p className="mt-3 max-w-[460px] text-center text-[15px] leading-relaxed text-fora-muted">
-        Two layout explorations are available. Select one to enter that prototype; your choice is
-        remembered in this browser until you clear it.
-      </p>
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-5 py-8 sm:px-8 sm:py-10">
+      <div className="w-full max-w-[760px] shrink-0">
+        <header className="text-center">
+          <h1 className="font-sans text-[28px] font-bold leading-tight tracking-tight text-black sm:text-[32px]">
+            Pick a layout
+          </h1>
+          <p className="mt-2 text-[15px] leading-snug text-[#6B6B6B]">
+            Your choice is saved in this browser.
+          </p>
+        </header>
 
-      <div className="mt-12 grid w-full max-w-[720px] gap-4 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => onChoose("split")}
-          className={cn(
-            "flex flex-col items-start rounded-[16px] border border-fora-border bg-white p-8 text-left shadow-sm transition-colors",
-            "hover:border-fora-navy/30 hover:bg-fora-app/50 focus-visible:ring-2 focus-visible:ring-fora-link focus-visible:ring-offset-2"
-          )}
-        >
-          <span className="text-[13px] font-semibold uppercase tracking-wide text-fora-link">
-            Split view
-          </span>
-          <span className="mt-2 font-sans text-xl font-bold text-fora-navy">List + detail pane</span>
-          <span className="mt-3 text-[14px] leading-snug text-fora-muted">
-            Filter chips, compact rows, and a persistent detail column (desktop) or list-then-detail
-            on small screens.
-          </span>
-          <span className="mt-6 text-[13px] font-medium text-fora-link">Enter prototype →</span>
-        </button>
+        <div className="mt-12 grid w-full gap-6 sm:grid-cols-2 sm:gap-8">
+          <button type="button" onClick={() => onChoose("split")} className={cardShell}>
+            <div className="flex min-h-[160px] items-center justify-center bg-[#F5F0E8] px-5 py-8 sm:min-h-[176px]">
+              <SplitLayoutIllustration />
+            </div>
+            <div className="flex items-center gap-4 border-t border-[#EFEBE4] px-5 py-5">
+              <div className="min-w-0 flex-1">
+                <p className="font-sans text-base font-bold text-black">Split view</p>
+                <p className="mt-1 text-[14px] leading-snug text-[#6B6B6B]">
+                  List with a persistent detail pane.
+                </p>
+              </div>
+              <ChevronRight
+                className="size-5 shrink-0 text-[#6B6B6B] transition-transform group-hover:translate-x-0.5"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            </div>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onChoose("cards")}
-          className={cn(
-            "flex flex-col items-start rounded-[16px] border border-fora-border bg-white p-8 text-left shadow-sm transition-colors",
-            "hover:border-fora-navy/30 hover:bg-fora-app/50 focus-visible:ring-2 focus-visible:ring-fora-link focus-visible:ring-offset-2"
-          )}
-        >
-          <span className="text-[13px] font-semibold uppercase tracking-wide text-fora-link">
-            Card list
-          </span>
-          <span className="mt-2 font-sans text-xl font-bold text-fora-navy">Original large cards</span>
-          <span className="mt-3 text-[14px] leading-snug text-fora-muted">
-            Vertical stack of wide cards with inline stats and credit-card column, matching the first
-            scaffold.
-          </span>
-          <span className="mt-6 text-[13px] font-medium text-fora-link">Enter prototype →</span>
-        </button>
+          <button type="button" onClick={() => onChoose("cards")} className={cardShell}>
+            <div className="flex min-h-[160px] items-center justify-center bg-[#F5F0E8] px-5 py-8 sm:min-h-[176px]">
+              <CardListIllustration />
+            </div>
+            <div className="flex items-center gap-4 border-t border-[#EFEBE4] px-5 py-5">
+              <div className="min-w-0 flex-1">
+                <p className="font-sans text-base font-bold text-black">Card list</p>
+                <p className="mt-1 text-[14px] leading-snug text-[#6B6B6B]">
+                  Stacked wide cards with inline stats.
+                </p>
+              </div>
+              <ChevronRight
+                className="size-5 shrink-0 text-[#6B6B6B] transition-transform group-hover:translate-x-0.5"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
