@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Mail, MoreHorizontal, Phone } from "lucide-react";
+import { CreditCard, Mail, MoreHorizontal, Phone } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import type { Client, ClientPhone } from "@/lib/types";
 import {
@@ -12,6 +13,7 @@ import {
   formatCurrency,
   formatPhoneDisplay,
 } from "@/lib/format";
+import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
 import { Flag } from "@/components/flag";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +62,7 @@ function StatBlock({
 }
 
 export function ClientListCard({ client, onViewDetails }: Props) {
+  const [addCreditOpen, setAddCreditOpen] = useState(false);
   const phone = primaryPhone(client);
   const phoneText = phone ? formatPhoneDisplay(phone) : null;
   const telHref = phone ? phoneToTelHref(phone) : null;
@@ -139,16 +142,20 @@ export function ClientListCard({ client, onViewDetails }: Props) {
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner sideOffset={6} align="end">
-              <Menu.Popup className="z-50 min-w-[160px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+              <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                 {onViewDetails ? (
                   <Menu.Item onClick={onViewDetails} className={menuItemClass}>
-                    View details
+                    View card details
                   </Menu.Item>
                 ) : (
                   <Menu.LinkItem href={profileHref} className={menuItemClass} closeOnClick>
-                    View details
+                    View card details
                   </Menu.LinkItem>
                 )}
+                <Menu.Item onClick={() => setAddCreditOpen(true)} className={menuItemClass}>
+                  <CreditCard className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                  Add credit
+                </Menu.Item>
                 {telHref ? (
                   <Menu.LinkItem href={telHref} className={menuItemClass} closeOnClick>
                     <Phone className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
@@ -166,6 +173,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
           </Menu.Portal>
         </Menu.Root>
       </div>
+      <AddCreditCardDialog open={addCreditOpen} onOpenChange={setAddCreditOpen} />
     </article>
   );
 }

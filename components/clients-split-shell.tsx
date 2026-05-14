@@ -177,7 +177,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
         <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:px-8">
           <aside
             className={cn(
-              "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:flex-none lg:basis-[360px]",
+              "flex max-h-full min-h-0 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:max-h-none lg:flex-none lg:basis-[360px] lg:self-start",
               hasSelection && "hidden lg:flex"
             )}
           >
@@ -204,7 +204,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
               </div>
             </div>
 
-            <ul className="w-full flex-none min-h-0 max-h-full divide-y divide-fora-border overflow-y-auto">
+            <ul className="min-h-0 w-full flex-1 divide-y divide-fora-border overflow-y-auto">
               {visible.length === 0 ? (
                 <li className="px-4 py-10 text-center text-[14px] text-fora-muted">
                   No clients match your search.
