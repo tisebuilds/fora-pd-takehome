@@ -136,14 +136,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           >
             Close
           </button>
-        ) : (
-          <Link
-            href="/clients"
-            className="mb-5 inline-flex text-sm text-fora-link no-underline hover:opacity-80 lg:hidden"
-          >
-            ← All clients
-          </Link>
-        )}
+        ) : null}
 
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

@@ -201,7 +201,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
                   value={sort}
                   onChange={setSort}
                   variant="icon"
-                  triggerClassName="h-10 w-10 shrink-0 rounded-lg border border-fora-border bg-white text-fora-muted hover:bg-fora-app"
+                  triggerClassName="h-10 w-10 shrink-0 rounded-lg bg-white text-fora-muted hover:bg-fora-app"
                 />
               </div>
             </div>
@@ -221,14 +221,24 @@ export function ClientsSplitShell({ clients, children }: Props) {
             </ul>
           </aside>
 
-          <section
+          <div
             className={cn(
-              "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:rounded-l-none",
+              "flex min-h-0 flex-1 flex-col gap-3 lg:min-h-0 lg:gap-0",
               !hasSelection && "hidden lg:flex"
             )}
           >
-            {children}
-          </section>
+            {hasSelection ? (
+              <Link
+                href="/clients"
+                className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80 lg:hidden"
+              >
+                ← All clients
+              </Link>
+            ) : null}
+            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:rounded-l-none">
+              {children}
+            </section>
+          </div>
         </div>
       ) : (
         <>

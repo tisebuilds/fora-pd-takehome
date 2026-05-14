@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { saveClientPersonalInfo } from "@/app/clients/[id]/edit/actions";
 import type { Client, PhoneType } from "@/lib/types";
-import { clientDisplayName, formatPhoneDisplay } from "@/lib/format";
+import { formatPhoneDisplay } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -143,9 +143,6 @@ export function EditPersonalInfoForm({ client }: Props) {
       <Link href={`/clients/${client.id}`} className="text-sm text-fora-link no-underline hover:opacity-80">
         ← Go back
       </Link>
-      <h1 className="mt-4 font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
-        Edit {clientDisplayName(client)} Personal Info
-      </h1>
 
       <form
         className="mt-8 w-full rounded-lg border border-[#E5E7EB] bg-white p-8 shadow-sm md:p-8"

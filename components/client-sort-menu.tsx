@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { ArrowUpDown, Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type ClientSortKey = "commissions-desc" | "bookings-desc" | "name-asc";
@@ -44,7 +44,7 @@ export function ClientSortMenu({ value, onChange, variant = "pill", triggerClass
             <ChevronDown className="size-3.5 text-fora-muted" strokeWidth={1.75} aria-hidden />
           </>
         ) : (
-          <ArrowUpDown className="size-4" strokeWidth={1.75} aria-hidden />
+          <Filter className="size-4" strokeWidth={1.75} aria-hidden />
         )}
       </Menu.Trigger>
       <SortMenuPopup value={value} onChange={onChange} />

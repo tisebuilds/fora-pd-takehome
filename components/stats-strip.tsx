@@ -28,7 +28,7 @@ export function StatsStrip({
         <p className="text-[11px] font-normal leading-tight text-fora-muted">Bookings</p>
         <Link
           href={bookingsHref}
-          className="mt-1 inline-block text-lg font-bold text-fora-link no-underline hover:opacity-80"
+          className="mt-1 inline-block text-lg font-bold text-fora-navy no-underline hover:opacity-80"
         >
           {bookingsCount}
         </Link>
@@ -39,7 +39,7 @@ export function StatsStrip({
       </div>
       <div className="min-w-0">
         <p className="text-[11px] font-normal leading-tight text-fora-muted">Commissions</p>
-        <p className="mt-1 text-lg font-bold text-fora-success">{formatCurrency(commissions)}</p>
+        <p className="mt-1 text-lg font-bold text-fora-navy">{formatCurrency(commissions)}</p>
       </div>
     </div>
   );
