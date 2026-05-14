@@ -282,7 +282,6 @@ export function ClientsSplitShell({ clients, children }: Props) {
                     <div className="col-span-2">Client</div>
                     <div className="min-w-0">Email</div>
                     <div className="text-right tabular-nums">Bookings</div>
-                    <div className="text-right">Commissions</div>
                     <div aria-hidden className="min-h-0 min-w-0" />
                   </div>
                   {visibleCards.map((c) => (

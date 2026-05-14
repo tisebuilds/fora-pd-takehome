@@ -3,12 +3,7 @@
 import Link from "next/link";
 import type { Client } from "@/lib/types";
 import { clientAvatarToneClasses } from "@/lib/client-avatar-tone";
-import {
-  clientDisplayName,
-  clientInitials,
-  formatCityState,
-  formatCurrency,
-} from "@/lib/format";
+import { clientDisplayName, clientInitials, formatCityState } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -44,12 +39,12 @@ export function ClientListRow({ client, active }: Props) {
           {formatCityState(client) || "—"}
         </span>
       </span>
-      <span className="ml-2 flex shrink-0 flex-col items-end">
-        <span className="text-[14px] font-semibold tabular-nums text-fora-navy">
-          {formatCurrency(client.commissions)}
+      <span className="ml-2 flex shrink-0 flex-col items-end text-right">
+        <span className="text-[14px] font-semibold tabular-nums leading-tight text-fora-navy">
+          {client.bookingsCount}
         </span>
-        <span className="mt-0.5 text-[12px] tabular-nums text-fora-muted">
-          {client.bookingsCount} {client.bookingsCount === 1 ? "booking" : "bookings"}
+        <span className="mt-0.5 text-[12.5px] text-fora-muted">
+          {client.bookingsCount === 1 ? "Booking" : "Bookings"}
         </span>
       </span>
     </Link>

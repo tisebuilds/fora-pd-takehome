@@ -5,12 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import type { Client, ClientPhone } from "@/lib/types";
-import {
-  clientDisplayName,
-  clientInitials,
-  formatCurrency,
-  formatPhoneDisplay,
-} from "@/lib/format";
+import { clientDisplayName, clientInitials, formatPhoneDisplay } from "@/lib/format";
 import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
 import { CreditCardRow } from "@/components/credit-card-row";
 import {
@@ -46,9 +41,9 @@ function phoneToTelHref(p: ClientPhone): string | null {
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
-/** Shared grid for cards-mode table header (shell) and each data row — six columns: client (avatar+text), email, bookings, commissions, actions. */
+/** Shared grid for cards-mode table header (shell) and each data row — five columns: client (avatar+text), email, bookings, actions. */
 export const clientListTableGridClass =
-  "grid w-full grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_3.5rem_4.75rem_2.75rem] gap-x-3 items-center sm:gap-x-4";
+  "grid w-full grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_3.5rem_2.75rem] gap-x-3 items-center sm:gap-x-4";
 
 const navCellClass =
   "cursor-pointer rounded-md text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 focus-visible:ring-offset-0";
@@ -111,12 +106,6 @@ export function ClientListCard({ client, onViewDetails }: Props) {
     </p>
   );
 
-  const commissionsCell = (
-    <p className="text-right text-[14px] font-semibold tabular-nums text-[#111827]">
-      {formatCurrency(client.commissions)}
-    </p>
-  );
-
   return (
     <div className="flex flex-col bg-white">
       <div
@@ -142,9 +131,6 @@ export function ClientListCard({ client, onViewDetails }: Props) {
             >
               {bookingsCell}
             </button>
-            <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-end")}>
-              {commissionsCell}
-            </button>
           </>
         ) : (
           <>
@@ -157,9 +143,6 @@ export function ClientListCard({ client, onViewDetails }: Props) {
             <div className="min-w-0">{emailCell}</div>
             <Link href={profileHref} className={cn(navCellClass, "group flex justify-end no-underline")}>
               {bookingsCell}
-            </Link>
-            <Link href={profileHref} className={cn(navCellClass, "flex justify-end no-underline")}>
-              {commissionsCell}
             </Link>
           </>
         )}

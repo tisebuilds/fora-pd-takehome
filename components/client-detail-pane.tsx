@@ -278,7 +278,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
 
   return (
     <div ref={scrollContainerRef} className="flex h-full min-h-0 flex-col overflow-y-auto">
-      <div className="mx-auto w-full max-w-[860px] px-6 py-7 lg:px-10 lg:py-9">
+      <div className="w-full min-w-0 px-6 py-7 lg:px-10 lg:py-9">
         {onClose ? (
           <button
             type="button"
@@ -474,7 +474,10 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
             }
           >
             <div className="divide-y divide-[#EEEEEE]">
-              <ImportantDateRow label="Birthday" emoji="🎂" date={birthday} />
+              {birthday &&
+              formatImportantDate(birthday.month, birthday.day, birthday.year) ? (
+                <ImportantDateRow label="Birthday" emoji="🎂" date={birthday} />
+              ) : null}
               {anniversary &&
               formatImportantDate(anniversary.month, anniversary.day, anniversary.year) ? (
                 <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />

@@ -2,6 +2,7 @@
 
 import { useCallback, useId, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   addTravelerGroupAction,
@@ -12,18 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const segmentWrap =
-  "flex w-full rounded-lg border border-fora-border bg-fora-app/80 p-0.5 gap-0.5 sm:inline-flex sm:w-auto";
-
-function segmentBtn(active: boolean) {
-  return cn(
-    "inline-flex h-9 flex-1 items-center justify-center rounded-md px-3 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-border/60",
-    active ? "bg-fora-navy text-white shadow-sm" : "bg-white text-fora-navy hover:bg-white/90",
-  );
-}
-
 const FIELD =
-  "h-10 w-full min-w-0 rounded-lg border-fora-border bg-white px-3 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
+  "h-10 w-full min-w-0 rounded-lg border border-fora-border bg-white px-3 text-[15px] text-black shadow-none outline-none transition-colors placeholder:text-neutral-400 focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-300/80";
+
+function primaryGivenNameForLabel(primaryClientDisplayName: string): string {
+  const t = primaryClientDisplayName.trim();
+  if (!t) return "the primary traveler";
+  return t.split(/\s+/)[0] ?? t;
+}
 
 type FormProps = {
   formKey: number;
@@ -31,6 +28,7 @@ type FormProps = {
   mode: "add" | "rename";
   groupId: string | null;
   initialName: string;
+  primaryClientDisplayName: string;
   onSaved: () => void;
   onClose: () => void;
 };
@@ -41,6 +39,7 @@ function TravelerGroupNameForm({
   mode,
   groupId,
   initialName,
+  primaryClientDisplayName,
   onSaved,
   onClose,
 }: FormProps) {
@@ -48,11 +47,13 @@ function TravelerGroupNameForm({
   const [name, setName] = useState(initialName);
   const [includePrimaryClient, setIncludePrimaryClient] = useState(true);
   const [pending, setPending] = useState(false);
+  const includePrimaryId = `${reactId}-include-primary`;
+  const given = primaryGivenNameForLabel(primaryClientDisplayName);
 
   return (
     <form
       key={formKey}
-      className="mt-6 space-y-4"
+      className="mt-6 space-y-5"
       onSubmit={async (e) => {
         e.preventDefault();
         setPending(true);
@@ -83,50 +84,55 @@ function TravelerGroupNameForm({
         }
       }}
     >
-      <div className="space-y-1.5">
-        <Label htmlFor={`${reactId}-name`} className="text-sm font-normal text-fora-muted">
-          Group name
+      <div className="space-y-2">
+        <Label htmlFor={`${reactId}-name`} className="text-[15px] font-normal text-neutral-700">
+          Name
         </Label>
         <Input
           id={`${reactId}-name`}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={FIELD}
-          placeholder="e.g. Family, Spring break 2026"
+          placeholder="Family, Spring break 2026..."
           autoComplete="off"
           required
         />
       </div>
       {mode === "add" ? (
-        <div className="space-y-1.5">
-          <p className="text-sm font-normal text-fora-muted">Primary client on this group</p>
-          <div className={segmentWrap} role="group" aria-label="Include primary client in group">
-            <button
-              type="button"
-              onClick={() => setIncludePrimaryClient(true)}
-              className={segmentBtn(includePrimaryClient)}
-            >
-              Include primary
-            </button>
-            <button
-              type="button"
-              onClick={() => setIncludePrimaryClient(false)}
-              className={segmentBtn(!includePrimaryClient)}
-            >
-              Companions only
-            </button>
-          </div>
-          <p className="text-[12px] leading-snug text-fora-muted">
-            “Companions only” hides this client’s profile row here — useful for lists like pets or colleagues.
-          </p>
-        </div>
+        <label className="flex cursor-pointer gap-3 rounded-lg border border-fora-border bg-white p-4 outline-none transition-colors hover:bg-neutral-50/80 focus-within:ring-2 focus-within:ring-neutral-300/80">
+          <input
+            id={includePrimaryId}
+            type="checkbox"
+            checked={includePrimaryClient}
+            onChange={(e) => setIncludePrimaryClient(e.target.checked)}
+            className="sr-only"
+          />
+          <span
+            className={cn(
+              "mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-[3px] border bg-white",
+              includePrimaryClient ? "border-black bg-black" : "border-neutral-300 bg-white",
+            )}
+          >
+            {includePrimaryClient ? (
+              <Check strokeWidth={3} className="size-3.5 text-white" aria-hidden />
+            ) : null}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[15px] font-normal text-black">
+              Include {given} in this group
+            </span>
+            <span className="mt-1 block text-[13px] leading-snug text-neutral-500">
+              Uncheck for pets, colleagues, or other lists.
+            </span>
+          </span>
+        </label>
       ) : null}
-      <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end sm:gap-3">
+      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end sm:gap-3">
         <Dialog.Close
           type="button"
           disabled={pending}
           className={cn(
-            "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+            "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-black outline-none transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300/80",
             pending && "pointer-events-none opacity-50",
           )}
         >
@@ -135,9 +141,9 @@ function TravelerGroupNameForm({
         <Button
           type="submit"
           disabled={pending}
-          className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
+          className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-neutral-800"
         >
-          {mode === "add" ? "Create group" : "Save"}
+          {mode === "add" ? "Create" : "Save"}
         </Button>
       </div>
     </form>
@@ -152,6 +158,8 @@ type Props = {
   mode: "add" | "rename";
   groupId: string | null;
   initialName?: string;
+  /** Full display name of the primary client; first word is used in the add-group include checkbox. */
+  primaryClientDisplayName: string;
   onSaved: () => void;
 };
 
@@ -163,6 +171,7 @@ export function TravelerGroupNameDialog({
   mode,
   groupId,
   initialName = "",
+  primaryClientDisplayName,
   onSaved,
 }: Props) {
   const handleOpenChange = useCallback(
@@ -183,21 +192,21 @@ export function TravelerGroupNameDialog({
       <Dialog.Portal>
         <Dialog.Backdrop
           className={cn(
-            "fixed inset-0 z-50 bg-black/25 transition-[opacity] duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+            "fixed inset-0 z-50 bg-neutral-300/50 transition-[opacity] duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
           )}
         />
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "w-full max-w-md rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
+              "w-full max-w-md rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
             )}
           >
-            <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
-              {mode === "add" ? "New traveler group" : "Rename group"}
+            <Dialog.Title className="font-sans text-xl font-semibold tracking-tight text-black">
+              {mode === "add" ? "New group" : "Rename group"}
             </Dialog.Title>
-            <Dialog.Description className="mt-1 text-sm text-fora-muted">
+            <Dialog.Description className="mt-1.5 text-[15px] font-normal text-neutral-500">
               {mode === "add"
-                ? "Create a set of people who often travel together (family, work trips, etc.)."
+                ? "Travelers who often book together."
                 : "Update how this group appears on the profile."}
             </Dialog.Description>
 
@@ -209,6 +218,7 @@ export function TravelerGroupNameDialog({
                 mode={mode}
                 groupId={groupId}
                 initialName={initialName}
+                primaryClientDisplayName={primaryClientDisplayName}
                 onSaved={onSaved}
                 onClose={close}
               />

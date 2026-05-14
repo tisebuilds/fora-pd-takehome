@@ -183,7 +183,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       />
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center border-t border-rule bg-white py-2.5 pb-4",
+          "flex shrink-0 items-center justify-start border-t border-rule bg-white py-2.5 pb-4",
           collapsed ? "px-1.5" : "px-6"
         )}
       >

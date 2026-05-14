@@ -135,7 +135,7 @@ export function EditPersonalInfoForm({ client }: Props) {
   }
 
   return (
-    <div className="mx-auto flex min-h-0 flex-1 w-full max-w-[860px] flex-col">
+    <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
       <form
         className="flex min-h-0 w-full flex-1 flex-col"
         onSubmit={handleSubmit}

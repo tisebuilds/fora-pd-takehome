@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Pencil, Search, Trash2, UserRound } from "lucide-react";
+import { CreditCard as CreditCardIcon, MoreHorizontal, Pencil, Search, Trash2, UserRound } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import type { AssociatedTraveler, ClientAddress, CreditCard, TravelerGroup } from "@/lib/types";
@@ -15,6 +15,7 @@ import { DeleteTravelerGroupDialog } from "@/components/delete-traveler-group-di
 import { DetailSection } from "@/components/detail-section";
 import { EditAssociatedTravelerDialog } from "@/components/edit-associated-traveler-dialog";
 import { InlineSectionEmptyBox } from "@/components/inline-section-empty-box";
+import { LinkHouseholdPaymentDialog } from "@/components/link-household-payment-dialog";
 import { TravelerGroupNameDialog } from "@/components/traveler-group-name-dialog";
 import {
   addTravelerGroupAction,
@@ -29,6 +30,8 @@ const editLinkCls =
 
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
+
+const NO_GROUP_PAYMENT_IDS: string[] = [];
 
 const ROW_CARD =
   "flex items-start gap-3 rounded-[14px] border border-fora-border bg-white px-4 py-3.5";
@@ -209,6 +212,12 @@ export function AssociatedTravelersSection({
   const [deleteGroup, setDeleteGroup] = useState<{ groupId: string; groupName: string } | null>(
     null,
   );
+  const [linkPaymentDialog, setLinkPaymentDialog] = useState<{
+    groupId: string;
+    groupName: string;
+    initialCardIds: string[];
+  } | null>(null);
+  const [linkPaymentFormKey, setLinkPaymentFormKey] = useState(0);
   const [emptyAddTravelerPending, setEmptyAddTravelerPending] = useState(false);
   const [groupSearchQuery, setGroupSearchQuery] = useState("");
 
@@ -295,6 +304,20 @@ export function AssociatedTravelersSection({
               {travelerGroupIncludesPrimary(group)
                 ? "Hide primary from group"
                 : "Show primary in group"}
+            </Menu.Item>
+            <Menu.Item
+              className={menuItemClass}
+              onClick={() => {
+                setLinkPaymentFormKey((k) => k + 1);
+                setLinkPaymentDialog({
+                  groupId: group.id,
+                  groupName: group.name,
+                  initialCardIds: [...(group.paymentCardIds ?? [])],
+                });
+              }}
+            >
+              <CreditCardIcon className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+              Link payment details
             </Menu.Item>
             <Menu.Item
               className={cn(menuItemClass, "text-fora-danger")}
@@ -576,6 +599,7 @@ export function AssociatedTravelersSection({
         mode={groupNameDialog?.mode ?? "add"}
         groupId={groupNameDialog?.mode === "rename" ? groupNameDialog.groupId : null}
         initialName={groupNameDialog?.mode === "rename" ? groupNameDialog.initialName : ""}
+        primaryClientDisplayName={primaryClientName}
         onSaved={onRefresh}
       />
 
@@ -598,6 +622,21 @@ export function AssociatedTravelersSection({
         groupId={deleteGroup?.groupId ?? null}
         groupName={deleteGroup?.groupName ?? null}
         onDeleted={onRefresh}
+      />
+
+      <LinkHouseholdPaymentDialog
+        open={linkPaymentDialog !== null}
+        onOpenChange={(next) => {
+          if (!next) setLinkPaymentDialog(null);
+        }}
+        formKey={linkPaymentFormKey}
+        clientId={clientId}
+        groupId={linkPaymentDialog?.groupId ?? null}
+        groupName={linkPaymentDialog?.groupName ?? null}
+        cards={clientCreditCards}
+        initialSelectedIds={linkPaymentDialog?.initialCardIds ?? NO_GROUP_PAYMENT_IDS}
+        onSaved={onRefresh}
+        onOpenPrimaryClientProfile={onOpenPrimaryClientProfile}
       />
     </div>
   );

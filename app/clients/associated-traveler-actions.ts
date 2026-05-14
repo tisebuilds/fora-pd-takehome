@@ -8,6 +8,7 @@ import {
   deleteTravelerGroup,
   renameTravelerGroup,
   setTravelerGroupIncludePrimary,
+  setTravelerGroupPaymentCardIds,
   updateTravelerInGroup,
 } from "@/lib/data";
 import type { CompanionKind, TravelerFlightBookingInfo } from "@/lib/types";
@@ -57,6 +58,17 @@ export async function renameTravelerGroupAction(
   if (!ok) {
     return { ok: false, error: "Could not rename group." };
   }
+  revalidateClientPaths(clientId);
+  return { ok: true };
+}
+
+export async function setTravelerGroupPaymentCardIdsAction(
+  clientId: string,
+  groupId: string,
+  paymentCardIds: string[],
+): Promise<TravelerMutationResult> {
+  const result = setTravelerGroupPaymentCardIds(clientId, groupId, paymentCardIds);
+  if (!result.ok) return result;
   revalidateClientPaths(clientId);
   return { ok: true };
 }

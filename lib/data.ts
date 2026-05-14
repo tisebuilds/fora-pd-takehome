@@ -879,6 +879,30 @@ export function renameTravelerGroup(clientId: string, groupId: string, name: str
   return true;
 }
 
+export function setTravelerGroupPaymentCardIds(
+  clientId: string,
+  groupId: string,
+  paymentCardIds: string[],
+): { ok: true } | { ok: false; error: string } {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return { ok: false, error: "Client not found." };
+  migrateToTravelerGroupsIfNeeded(client);
+  const group = client.travelerGroups!.find((g) => g.id === groupId);
+  if (!group) return { ok: false, error: "Group not found." };
+  const allowed = new Set(client.creditCards.map((c) => c.id));
+  for (const id of paymentCardIds) {
+    if (!allowed.has(id)) {
+      return { ok: false, error: "Invalid card selection." };
+    }
+  }
+  if (paymentCardIds.length === 0) {
+    delete group.paymentCardIds;
+  } else {
+    group.paymentCardIds = [...paymentCardIds];
+  }
+  return { ok: true };
+}
+
 export function deleteTravelerGroup(
   clientId: string,
   groupId: string,
