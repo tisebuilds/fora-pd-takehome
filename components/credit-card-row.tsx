@@ -118,7 +118,11 @@ type Props = {
    * When `embeddedListWithCopy`, show Edit and Hide in the header and Remove below the copy hint.
    * Set `false` for table-expanded panels where the parent owns section chrome. @default true
    */
-  showEmbedChromeActions?: boolean;
+  /**
+   * When this number increases, full card details (PAN, etc.) expand — used by the profile header
+   * “jump to credit cards” control so rows are not left in the default collapsed state.
+   */
+  expandDetailsSignal?: number;
 };
 
 function CopyValueButton({
@@ -317,6 +321,7 @@ export function CreditCardRow({
   onHide,
   showHideInEmbedRow = true,
   showEmbedChromeActions = true,
+  expandDetailsSignal = 0,
 }: Props) {
   const embed = Boolean(embeddedListWithCopy);
   const [revealed, setRevealed] = useState(false);
@@ -327,6 +332,11 @@ export function CreditCardRow({
   const profileLayout = isDetail && !embed;
   const embedRootRef = useRef<HTMLDivElement>(null);
   const shortcutLabel = useShortcutCopyLabel();
+
+  useEffect(() => {
+    if (expandDetailsSignal <= 0) return;
+    setRevealed(true);
+  }, [expandDetailsSignal]);
 
   const copyAllFormReady = useCallback(() => {
     const panFull = demoPanLine(card);

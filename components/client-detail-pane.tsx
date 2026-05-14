@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Copy, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Copy, CreditCard, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import type { Client, ImportantDate, LoyaltyProgram } from "@/lib/types";
@@ -118,6 +119,8 @@ function Section({
   children,
   className,
   defaultOpen = true,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   title: ReactNode;
   action?: ReactNode;
@@ -125,8 +128,22 @@ function Section({
   className?: string;
   /** When false, the section starts collapsed. */
   defaultOpen?: boolean;
+  /** When set with `onOpenChange`, the section is controlled (e.g. open from header). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+
+  const toggle = () => {
+    if (isControlled) {
+      onOpenChange?.(!open);
+    } else {
+      setInternalOpen((o) => !o);
+    }
+  };
+
   const contentId = useId();
 
   return (
@@ -145,7 +162,7 @@ function Section({
       >
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={toggle}
           className="group -m-1 flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 text-left outline-none transition-colors hover:bg-fora-app/60 focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
           aria-expanded={open}
           aria-controls={contentId}
@@ -245,6 +262,9 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   const [loyaltyDialog, setLoyaltyDialog] = useState<LoyaltyDialogState>(null);
   const [loyaltyDeleteProgram, setLoyaltyDeleteProgram] = useState<LoyaltyProgram | null>(null);
   const [loyaltyDialogFormKey, setLoyaltyDialogFormKey] = useState(0);
+  const [creditCardsOpen, setCreditCardsOpen] = useState(true);
+  const [creditCardDetailsSignal, setCreditCardDetailsSignal] = useState(0);
+  const creditCardsAnchorRef = useRef<HTMLDivElement>(null);
 
   const notesSnapshot =
     Object.hasOwn(noteEdits, client.id) ? noteEdits[client.id] : client.notes;
@@ -268,6 +288,40 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
     router.refresh();
   };
 
+  const revealCreditCardsSection = () => {
+    flushSync(() => {
+      setCreditCardsOpen(true);
+      setCreditCardDetailsSignal((n) => n + 1);
+    });
+
+    const behavior =
+      typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? ("auto" as const)
+        : ("smooth" as const);
+
+    const scrollPaneToCreditCards = () => {
+      const scroller = scrollContainerRef.current;
+      const target = creditCardsAnchorRef.current;
+      if (!scroller || !target) return;
+
+      const scrollerRect = scroller.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const scrollMarginTop = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      const delta = targetRect.top - scrollerRect.top + scroller.scrollTop - scrollMarginTop;
+      scroller.scrollTo({ top: Math.max(0, delta), behavior });
+    };
+
+    // Section accordion + per-card detail grids need layout time before scrolling.
+    if (behavior === "auto") {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(scrollPaneToCreditCards);
+      });
+    } else {
+      window.setTimeout(scrollPaneToCreditCards, 280);
+      window.setTimeout(scrollPaneToCreditCards, 600);
+    }
+  };
+
   const mobile = personalMobile(client);
   const email = personalEmail(client);
   const address = client.addresses[0];
@@ -286,6 +340,11 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
 
     el.addEventListener("scroll", sync, { passive: true });
     return () => el.removeEventListener("scroll", sync);
+  }, [client.id]);
+
+  useEffect(() => {
+    setCreditCardsOpen(true);
+    setCreditCardDetailsSignal(0);
   }, [client.id]);
 
   return (
@@ -317,6 +376,14 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={revealCreditCardsSection}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
+              aria-label="Show credit card details"
+            >
+              <CreditCard className="size-4" strokeWidth={1.75} aria-hidden />
+            </button>
             <Menu.Root>
               <Menu.Trigger
                 className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
@@ -340,13 +407,16 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           </div>
         </div>
 
-        {/* KPI strip */}
-        <StatsStrip
-          bookingsCount={client.bookingsCount}
-          commissionableValue={client.commissionableValue}
-          commissions={client.commissions}
-          className="mt-6"
-        />
+        {/* KPI strip — anchor for "View bookings" from list row menus */}
+        <div id="bookings" className="scroll-mt-6">
+          <StatsStrip
+            bookingsCount={client.bookingsCount}
+            commissionableValue={client.commissionableValue}
+            commissions={client.commissions}
+            bookingsHref="#bookings"
+            className="mt-6"
+          />
+        </div>
 
         {/* Sections */}
         <div className="mt-4">
@@ -478,62 +548,71 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
             />
           </Section>
 
-          <Section
-            title="Credit cards"
-            action={
-              client.creditCards.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setAddCardOpen(true)}
-                  className={editLinkCls}
-                >
-                  + Add
-                </button>
-              ) : undefined
-            }
+          <div
+            id="credit-cards"
+            ref={creditCardsAnchorRef}
+            className="scroll-mt-28"
           >
-            <div className="space-y-3">
-              {client.creditCards.length === 0 ? (
-                <InlineSectionEmptyBox>
+            <Section
+              title="Credit cards"
+              open={creditCardsOpen}
+              onOpenChange={setCreditCardsOpen}
+              action={
+                client.creditCards.length > 0 ? (
                   <button
                     type="button"
-                    className={inlineSectionEmptyActionTriggerClass}
                     onClick={() => setAddCardOpen(true)}
+                    className={editLinkCls}
                   >
-                    <InlineSectionEmptyActionLabel>Add card</InlineSectionEmptyActionLabel>
+                    + Add
                   </button>
-                </InlineSectionEmptyBox>
-              ) : (
-                client.creditCards.map((c) => (
-                  <CreditCardRow
-                    key={c.id}
-                    card={c}
-                    variant="detail"
-                    billingAddress={client.addresses[0] ?? null}
-                  />
-                ))
-              )}
-            </div>
-            <AddCreditCardDialog open={addCardOpen} onOpenChange={setAddCardOpen} />
-          </Section>
+                ) : undefined
+              }
+            >
+              <div className="space-y-3">
+                {client.creditCards.length === 0 ? (
+                  <InlineSectionEmptyBox>
+                    <button
+                      type="button"
+                      className={inlineSectionEmptyActionTriggerClass}
+                      onClick={() => setAddCardOpen(true)}
+                    >
+                      <InlineSectionEmptyActionLabel>Add card</InlineSectionEmptyActionLabel>
+                    </button>
+                  </InlineSectionEmptyBox>
+                ) : (
+                  client.creditCards.map((c) => (
+                    <CreditCardRow
+                      key={c.id}
+                      card={c}
+                      variant="detail"
+                      billingAddress={client.addresses[0] ?? null}
+                      expandDetailsSignal={creditCardDetailsSignal}
+                    />
+                  ))
+                )}
+              </div>
+              <AddCreditCardDialog open={addCardOpen} onOpenChange={setAddCardOpen} />
+            </Section>
+          </div>
 
           <Section
             title="Loyalty programs"
             action={
               email ? (
-                <a
-                  href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
-                  className={cn(editLinkCls, "inline-flex items-center gap-1")}
-                  aria-label="Email client to request loyalty program details"
+                <button
+                  type="button"
+                  onClick={openLoyaltyAdd}
+                  className={editLinkCls}
+                  aria-label="Add loyalty program"
                 >
-                  <Mail className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                  Request from client
-                </a>
+                  + Add
+                </button>
               ) : (
                 <Link
                   href={`/clients/${client.id}/edit`}
                   className={editLinkCls}
-                  aria-label="Add an email address, then request loyalty program details"
+                  aria-label="Add an email address to add loyalty programs"
                 >
                   + Add
                 </Link>
@@ -617,6 +696,18 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 ))}
               </ul>
             )}
+            {email ? (
+              <p className="mt-3 text-[13px] leading-snug">
+                <a
+                  href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
+                  className={cn(editLinkCls, "inline-flex items-center gap-1")}
+                  aria-label="Email client to request loyalty program details"
+                >
+                  <Mail className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                  Request from client
+                </a>
+              </p>
+            ) : null}
             <EditLoyaltyProgramDialog
               open={loyaltyDialog !== null}
               onOpenChange={(next) => {

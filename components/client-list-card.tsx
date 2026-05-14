@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Wallet } from "lucide-react";
+import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import type { Client, ClientPhone } from "@/lib/types";
 import {
@@ -62,6 +62,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
   const email = primaryEmail(client);
 
   const profileHref = `/clients/${client.id}`;
+  const bookingsHref = `${profileHref}#bookings`;
 
   const avatarCell = (
     <div
@@ -105,7 +106,9 @@ export function ClientListCard({ client, onViewDetails }: Props) {
   );
 
   const bookingsCell = (
-    <p className="text-right text-[14px] font-semibold tabular-nums text-[#111827]">{client.bookingsCount}</p>
+    <p className="text-right text-[14px] font-semibold tabular-nums text-[#111827] underline-offset-2 transition-colors group-hover:text-fora-link group-hover:underline">
+      {client.bookingsCount}
+    </p>
   );
 
   const commissionsCell = (
@@ -132,7 +135,11 @@ export function ClientListCard({ client, onViewDetails }: Props) {
               {nameAndPhoneCell}
             </button>
             <div className="min-w-0">{emailCell}</div>
-            <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-end")}>
+            <button
+              type="button"
+              onClick={onViewDetails}
+              className={cn(navCellClass, "group flex justify-end")}
+            >
               {bookingsCell}
             </button>
             <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-end")}>
@@ -148,7 +155,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
               {nameAndPhoneCell}
             </Link>
             <div className="min-w-0">{emailCell}</div>
-            <Link href={profileHref} className={cn(navCellClass, "flex justify-end no-underline")}>
+            <Link href={profileHref} className={cn(navCellClass, "group flex justify-end no-underline")}>
               {bookingsCell}
             </Link>
             <Link href={profileHref} className={cn(navCellClass, "flex justify-end no-underline")}>
@@ -179,6 +186,10 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                       View client details
                     </Menu.LinkItem>
                   )}
+                  <Menu.LinkItem href={bookingsHref} className={menuItemClass} closeOnClick>
+                    <Receipt className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                    View bookings
+                  </Menu.LinkItem>
                   <Menu.Item onClick={() => setCreditPanelOpen(true)} className={menuItemClass}>
                     <Wallet className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     View credit card details
