@@ -59,6 +59,46 @@ export interface ImportantDate {
   year: number | null;
 }
 
+/** Profile fields commonly needed when booking flights for a companion. */
+export interface TravelerFlightBookingInfo {
+  dateOfBirth?: string;
+  gender?: string;
+  email?: string;
+  phone?: string;
+  passportNumber?: string;
+  passportExpiry?: string;
+  nationality?: string;
+  knownTravelerNumber?: string;
+}
+
+/** Household or trip companions linked to a client profile. */
+export type CompanionKind = "person" | "pet";
+
+export interface AssociatedTraveler {
+  id: string;
+  /**
+   * `pet` = animal companion (name in `firstName`, species label in `lastName`, e.g. Cat, Dog).
+   * Omitted or `person` = human traveler (legal-style first + last name).
+   */
+  companionKind?: CompanionKind;
+  firstName: string;
+  lastName: string;
+  relationship?: string;
+  flight?: TravelerFlightBookingInfo;
+}
+
+/** Named set of travelers (e.g. family vs work trip) for booking together. */
+export interface TravelerGroup {
+  id: string;
+  name: string;
+  travelers: AssociatedTraveler[];
+  /**
+   * When omitted or true, the client profile (primary) is listed first in this group on the companion tab.
+   * `false` = companion-only group (e.g. pets, colleagues) without duplicating the primary row.
+   */
+  includePrimaryClient?: boolean;
+}
+
 export interface Client {
   id: string;
   firstName: string;
@@ -74,6 +114,18 @@ export interface Client {
   creditCards: CreditCard[];
   loyaltyPrograms: LoyaltyProgram[];
   importantDates: ImportantDate[];
+  /**
+   * Booking / ID fields for the primary traveler (gender, passport, KTN, etc.).
+   * Shown on the Companion tab; contact fields fall back to profile emails/phones when omitted here.
+   */
+  flight?: TravelerFlightBookingInfo;
+  /**
+   * Legacy flat list — shown as a single group until the first traveler edit/add,
+   * which migrates data to `travelerGroups` in the demo store.
+   */
+  associatedTravelers?: AssociatedTraveler[];
+  /** Preferred — grouped companions for trips and joint bookings. */
+  travelerGroups?: TravelerGroup[];
   bookingsCount: number;
   commissionableValue: number;
   commissions: number;

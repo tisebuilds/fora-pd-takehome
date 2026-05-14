@@ -1,17 +1,20 @@
 import type {
+  AssociatedTraveler,
   Client,
   ClientAddress,
   ClientEmail,
   ClientPhone,
   LoyaltyProgram,
   PhoneType,
+  TravelerFlightBookingInfo,
+  TravelerGroup,
 } from "@/lib/types";
 
 /**
  * Hardcoded seed data for the Porta scaffold — all names and numbers are fictional.
  * Brad Andrews matches the reference screenshots.
  */
-export const clients: Client[] = [
+const seedClients: Client[] = [
   {
     id: "brad-andrews",
     firstName: "Brad",
@@ -67,9 +70,40 @@ export const clients: Client[] = [
       { id: "id-brad-1", label: "Birthday", month: 10, day: 3, year: 1984 },
       { id: "id-brad-2", label: "Anniversary", month: 6, day: 22, year: 2015 },
     ],
+    flight: {
+      gender: "Male",
+      nationality: "US",
+      passportNumber: "547891200",
+      passportExpiry: "2032-06-01",
+      knownTravelerNumber: "TT1122334",
+    },
     bookingsCount: 1,
     commissionableValue: 692,
     commissions: 48,
+    travelerGroups: [
+      {
+        id: "tg-brad-household",
+        name: "Household",
+        travelers: [
+          {
+            id: "at-brad-1",
+            firstName: "Nicole",
+            lastName: "Andrews",
+            relationship: "Spouse",
+            flight: {
+              dateOfBirth: "1986-04-18",
+              gender: "Female",
+              email: "nicole.andrews@example.com",
+              phone: "+1 917 555 0142",
+              nationality: "US",
+              passportNumber: "547891234",
+              passportExpiry: "2031-11-08",
+              knownTravelerNumber: "TT9876543",
+            },
+          },
+        ],
+      },
+    ],
     nameEdit: {
       prefix: "",
       suffix: "",
@@ -173,6 +207,38 @@ export const clients: Client[] = [
     bookingsCount: 12,
     commissionableValue: 48200,
     commissions: 3100,
+    travelerGroups: [
+      {
+        id: "tg-kb-family",
+        name: "Family",
+        travelers: [
+          {
+            id: "at-kb-1",
+            firstName: "Jordan",
+            lastName: "Barrett",
+            relationship: "Spouse",
+            flight: {
+              dateOfBirth: "1989-04-12",
+              nationality: "US",
+              knownTravelerNumber: "TT1234567",
+            },
+          },
+          {
+            id: "at-kb-2",
+            firstName: "Alex",
+            lastName: "Barrett",
+            relationship: "Child",
+            flight: { dateOfBirth: "2014-08-01", nationality: "US" },
+          },
+        ],
+      },
+      {
+        id: "tg-kb-work",
+        name: "Work trips",
+        travelers: [],
+        includePrimaryClient: false,
+      },
+    ],
   },
   {
     id: "nellie-bly",
@@ -333,6 +399,122 @@ export const clients: Client[] = [
   },
 ];
 
+const SCALE_DEMO_FIRST = [
+  "Alex",
+  "Riley",
+  "Morgan",
+  "Casey",
+  "Jamie",
+  "Quinn",
+  "Avery",
+  "Reese",
+  "Skyler",
+  "Drew",
+  "Blake",
+  "Cameron",
+  "Logan",
+  "Harper",
+  "Parker",
+] as const;
+
+const SCALE_DEMO_LAST = [
+  "Chen",
+  "Patel",
+  "Okonkwo",
+  "Nakamura",
+  "Silva",
+  "Kowalski",
+  "Andersson",
+  "Haddad",
+  "Fernández",
+  "Okafor",
+  "Nguyen",
+  "Ibrahim",
+  "Costa",
+  "Yamamoto",
+  "Schmidt",
+  "Olsen",
+  "Park",
+  "Reyes",
+  "Khan",
+  "Murphy",
+] as const;
+
+const SCALE_DEMO_CITIES = [
+  "Seattle",
+  "Boston",
+  "Atlanta",
+  "Portland",
+  "Philadelphia",
+  "Phoenix",
+  "Nashville",
+  "Minneapolis",
+  "Toronto",
+  "Vancouver",
+  "Dublin",
+  "Paris",
+  "Barcelona",
+  "Singapore",
+  "Sydney",
+] as const;
+
+/** Lightweight profiles so the clients list stresses layout at scale (fictional data). */
+function buildScaleDemoClients(count: number): Client[] {
+  return Array.from({ length: count }, (_, i) => {
+    const first = SCALE_DEMO_FIRST[i % SCALE_DEMO_FIRST.length]!;
+    const last = SCALE_DEMO_LAST[(i * 7) % SCALE_DEMO_LAST.length]!;
+    const city = SCALE_DEMO_CITIES[(i * 3) % SCALE_DEMO_CITIES.length]!;
+    const id = `scale-demo-${String(i + 1).padStart(3, "0")}`;
+    const bookingsCount = (i * 5 + 11) % 24;
+    const commissionableValue = ((i * 1307 + 500) % 89000) + 400;
+    const commissions = Math.round(commissionableValue * (0.04 + ((i % 10) + 1) * 0.004));
+
+    return {
+      id,
+      firstName: first,
+      lastName: last,
+      location: city,
+      emails: [{ type: "personal" as const, address: `${id.replace(/-/g, ".")}@example.com` }],
+      phones: [
+        {
+          type: "mobile" as const,
+          country: "US",
+          dialCode: "+1",
+          nationalNumber: String(2000000000 + ((i * 7919) % 800000000)),
+        },
+      ],
+      notes: i % 6 === 0 ? "Demo profile — synthetic row for scale testing." : null,
+      addresses: [
+        {
+          id: `addr-${id}`,
+          line1: `${100 + (i % 90)} Market St`,
+          city,
+          state: "",
+          zip: String(10000 + (i % 90000)).padStart(5, "0").slice(-5),
+        },
+      ],
+      creditCards: [],
+      loyaltyPrograms: [],
+      importantDates: [
+        {
+          id: `id-${id}-bd`,
+          label: "Birthday",
+          month: ((i % 12) + 1) as number,
+          day: ((i % 27) + 1) as number,
+          year: 1972 + (i % 35),
+        },
+        { id: `id-${id}-an`, label: "Anniversary", month: null, day: null, year: null },
+      ],
+      bookingsCount,
+      commissionableValue,
+      commissions,
+    } satisfies Client;
+  });
+}
+
+/** Seed clients plus synthetic rows for list/detail scale demos. */
+export const clients: Client[] = [...seedClients, ...buildScaleDemoClients(95)];
+
 export function getClientById(id: string): Client | undefined {
   return clients.find((c) => c.id === id);
 }
@@ -427,6 +609,198 @@ export function deleteLoyaltyProgram(clientId: string, programId: string): boole
   const idx = client.loyaltyPrograms.findIndex((p) => p.id === programId);
   if (idx === -1) return false;
   client.loyaltyPrograms.splice(idx, 1);
+  return true;
+}
+
+/** `includePrimaryClient` defaults to true when omitted. */
+export function travelerGroupIncludesPrimary(group: TravelerGroup): boolean {
+  return group.includePrimaryClient !== false;
+}
+
+/** Read-only view: legacy `associatedTravelers` is shown as one group until migrated. */
+export function getTravelerGroupsForDisplay(client: Client): TravelerGroup[] {
+  if (client.travelerGroups !== undefined) return client.travelerGroups;
+  const flat = client.associatedTravelers ?? [];
+  if (!flat.length) return [];
+  return [
+    {
+      id: `tg-${client.id}-household`,
+      name: "Household",
+      travelers: flat,
+      includePrimaryClient: true,
+    },
+  ];
+}
+
+/** Ensures `travelerGroups` exists on the client — call before mutating travelers in server actions. */
+export function migrateToTravelerGroupsIfNeeded(client: Client): void {
+  if (client.travelerGroups !== undefined) return;
+  const flat = client.associatedTravelers ?? [];
+  client.travelerGroups = flat.length
+    ? [
+        {
+          id: `tg-${client.id}-household`,
+          name: "Household",
+          travelers: flat.map((t) => ({
+            ...t,
+            flight: t.flight ? { ...t.flight } : undefined,
+          })),
+          includePrimaryClient: true,
+        },
+      ]
+    : [];
+  delete client.associatedTravelers;
+}
+
+function compactFlightFields(flight: TravelerFlightBookingInfo): TravelerFlightBookingInfo | undefined {
+  const next: TravelerFlightBookingInfo = {};
+  (Object.keys(flight) as (keyof TravelerFlightBookingInfo)[]).forEach((key) => {
+    const v = flight[key];
+    if (v != null && String(v).trim()) next[key] = String(v).trim();
+  });
+  return Object.keys(next).length ? next : undefined;
+}
+
+export function addTravelerGroup(
+  clientId: string,
+  name: string,
+  includePrimaryClient = true,
+): { ok: true; groupId: string } | { ok: false; error: string } {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return { ok: false, error: "Client not found." };
+  migrateToTravelerGroupsIfNeeded(client);
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, error: "Group name is required." };
+  const groupId = `tg-${clientId}-${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
+  client.travelerGroups!.push({
+    id: groupId,
+    name: trimmed,
+    travelers: [],
+    ...(includePrimaryClient ? {} : { includePrimaryClient: false }),
+  });
+  return { ok: true, groupId };
+}
+
+export function setTravelerGroupIncludePrimary(
+  clientId: string,
+  groupId: string,
+  includePrimaryClient: boolean,
+): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client?.travelerGroups) return false;
+  const group = client.travelerGroups.find((g) => g.id === groupId);
+  if (!group) return false;
+  if (includePrimaryClient) {
+    delete group.includePrimaryClient;
+  } else {
+    group.includePrimaryClient = false;
+  }
+  return true;
+}
+
+export function renameTravelerGroup(clientId: string, groupId: string, name: string): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client?.travelerGroups) return false;
+  const group = client.travelerGroups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+  group.name = trimmed;
+  return true;
+}
+
+export function deleteTravelerGroup(
+  clientId: string,
+  groupId: string,
+): { ok: true } | { ok: false; error: string } {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client?.travelerGroups) return { ok: false, error: "Group not found." };
+  const idx = client.travelerGroups.findIndex((g) => g.id === groupId);
+  if (idx === -1) return { ok: false, error: "Group not found." };
+  if (client.travelerGroups[idx]!.travelers.length > 0) {
+    return { ok: false, error: "Remove travelers from this group before deleting it." };
+  }
+  client.travelerGroups.splice(idx, 1);
+  return { ok: true };
+}
+
+export type TravelerUpsertPayload = Pick<
+  AssociatedTraveler,
+  "firstName" | "lastName" | "relationship" | "companionKind"
+> & {
+  flight?: TravelerFlightBookingInfo;
+};
+
+export function addTravelerToGroup(
+  clientId: string,
+  groupId: string,
+  data: TravelerUpsertPayload,
+): { ok: true; travelerId: string } | { ok: false; error: string } {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return { ok: false, error: "Client not found." };
+  migrateToTravelerGroupsIfNeeded(client);
+  const group = client.travelerGroups!.find((g) => g.id === groupId);
+  if (!group) return { ok: false, error: "Group not found." };
+  const firstName = data.firstName.trim();
+  const lastName = data.lastName.trim();
+  if (!firstName || !lastName) {
+    return {
+      ok: false,
+      error:
+        data.companionKind === "pet"
+          ? "Pet name and species are required."
+          : "First and last name are required.",
+    };
+  }
+  const travelerId = `at-${clientId}-${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
+  const flight = data.flight ? compactFlightFields(data.flight) : undefined;
+  const companionKind = data.companionKind === "pet" ? "pet" : undefined;
+  group.travelers.push({
+    id: travelerId,
+    ...(companionKind ? { companionKind } : {}),
+    firstName,
+    lastName,
+    relationship: data.relationship?.trim() || undefined,
+    flight,
+  });
+  return { ok: true, travelerId };
+}
+
+export function updateTravelerInGroup(
+  clientId: string,
+  groupId: string,
+  travelerId: string,
+  data: TravelerUpsertPayload,
+): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client?.travelerGroups) return false;
+  const group = client.travelerGroups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const t = group.travelers.find((x) => x.id === travelerId);
+  if (!t) return false;
+  const firstName = data.firstName.trim();
+  const lastName = data.lastName.trim();
+  if (!firstName || !lastName) return false;
+  if (data.companionKind === "pet") {
+    t.companionKind = "pet";
+  } else {
+    delete t.companionKind;
+  }
+  t.firstName = firstName;
+  t.lastName = lastName;
+  t.relationship = data.relationship?.trim() || undefined;
+  t.flight = data.flight ? compactFlightFields(data.flight) : undefined;
+  return true;
+}
+
+export function deleteTravelerFromGroup(clientId: string, groupId: string, travelerId: string): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client?.travelerGroups) return false;
+  const group = client.travelerGroups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const idx = group.travelers.findIndex((x) => x.id === travelerId);
+  if (idx === -1) return false;
+  group.travelers.splice(idx, 1);
   return true;
 }
 

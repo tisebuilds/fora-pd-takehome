@@ -1,4 +1,4 @@
-import type { Client, ClientAddress, ClientPhone } from "@/lib/types";
+import type { Client, ClientAddress, ClientPhone, TravelerFlightBookingInfo } from "@/lib/types";
 
 const MONTHS = [
   "January",
@@ -150,9 +150,106 @@ export function cardExpirySpaced(m: number, y2: number): string {
   return `${mm} / ${String(y2).padStart(2, "0")}`;
 }
 
+/** Single-line facts shown on household / companion cards for flight booking. */
+export type FlightBookingCardRow = { label: string; value: string };
+
+const AIRLINE_LOYALTY_NAME_RE =
+  /\b(airlines?|airline|mileage|miles|plus|skymiles|aadvantage|delta|united|american|southwest|jetblue|alaska|spirit|frontier|british|lufthansa|emirates|qatar|iberia|hawaiian)\b/i;
+
+function isLikelyAirlineLoyalty(programName: string): boolean {
+  return AIRLINE_LOYALTY_NAME_RE.test(programName);
+}
+
+/** Structured rows from a companion / household member `flight` block. */
+export function companionFlightBookingCardRows(
+  flight: TravelerFlightBookingInfo | undefined,
+): FlightBookingCardRow[] {
+  if (!flight) return [];
+  const rows: FlightBookingCardRow[] = [];
+  const add = (label: string, v: string | undefined) => {
+    const t = v?.trim();
+    if (t) rows.push({ label, value: t });
+  };
+  add("DOB", flight.dateOfBirth);
+  add("Gender", flight.gender);
+  add("Email", flight.email);
+  add("Phone", flight.phone);
+  add("Nationality", flight.nationality);
+  add("Passport", flight.passportNumber);
+  add("Passport expires", flight.passportExpiry);
+  add("Known Traveler #", flight.knownTravelerNumber);
+  return rows;
+}
+
+/**
+ * Rows for the primary client on a household card: `client.flight` booking IDs plus profile
+ * fallbacks (birthday from important dates, email/phone when not overridden in `flight`).
+ * Airline loyalty rows come from loyalty programs that look like airline schemes.
+ */
+export function primaryClientFlightBookingCardRows(client: Client): FlightBookingCardRow[] {
+  const rows: FlightBookingCardRow[] = [];
+  const f = client.flight;
+  const add = (label: string, v: string | undefined) => {
+    const t = v?.trim();
+    if (t) rows.push({ label, value: t });
+  };
+
+  const birthday = client.importantDates.find((d) => /^birthday$/i.test(d.label.trim()));
+  const dobFromImportant =
+    birthday != null ? formatImportantDate(birthday.month, birthday.day, birthday.year) : null;
+  add("DOB", f?.dateOfBirth?.trim() || dobFromImportant || undefined);
+
+  add("Gender", f?.gender);
+
+  const emailFromFlight = f?.email?.trim();
+  const emailFromProfile = (client.emails.find((e) => e.type === "personal") ?? client.emails[0])
+    ?.address?.trim();
+  add("Email", emailFromFlight || emailFromProfile);
+
+  const phoneFromFlight = f?.phone?.trim();
+  const phone = client.phones.find((p) => p.type === "mobile") ?? client.phones[0];
+  const phoneFromProfile = phone ? formatPhoneDisplay(phone) : null;
+  add("Phone", phoneFromFlight || phoneFromProfile || undefined);
+
+  add("Nationality", f?.nationality);
+  add("Passport", f?.passportNumber);
+  add("Passport expires", f?.passportExpiry);
+  add("Known Traveler #", f?.knownTravelerNumber);
+
+  const airlinePrograms = client.loyaltyPrograms.filter((lp) =>
+    isLikelyAirlineLoyalty(lp.programName),
+  );
+  for (const lp of airlinePrograms) {
+    const name = lp.programName.trim();
+    const num = lp.accountNumber.trim();
+    if (!name && !num) continue;
+    rows.push({
+      label: "Airline loyalty",
+      value: num ? `${name} · ${num}` : name,
+    });
+  }
+
+  return rows;
+}
+
 export function clientSearchBlob(c: Client): string {
   const addr = c.addresses[0];
   const cityState = addr ? [addr.city, addr.state].filter((s) => s && String(s).trim()).join(" ") : "";
+  const fl = c.flight;
+  const flightBlob = fl
+    ? [
+        fl.dateOfBirth,
+        fl.gender,
+        fl.email,
+        fl.phone,
+        fl.passportNumber,
+        fl.passportExpiry,
+        fl.nationality,
+        fl.knownTravelerNumber,
+      ]
+        .filter((s): s is string => typeof s === "string" && s.trim() !== "")
+        .join(" ")
+    : "";
   return [
     c.firstName,
     c.lastName,
@@ -161,6 +258,7 @@ export function clientSearchBlob(c: Client): string {
     cityState,
     ...c.emails.map((e) => e.address),
     ...c.phones.map((p) => formatPhoneDisplay(p) ?? ""),
+    flightBlob,
   ]
     .join(" ")
     .toLowerCase();

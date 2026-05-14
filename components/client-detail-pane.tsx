@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Copy, CreditCard, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Copy, CreditCard, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import type { Client, ImportantDate, LoyaltyProgram } from "@/lib/types";
@@ -14,6 +14,7 @@ import {
   formatCityState,
   formatImportantDate,
   formatPhoneDisplay,
+  primaryClientFlightBookingCardRows,
 } from "@/lib/format";
 import { Flag } from "@/components/flag";
 import { StatsStrip } from "@/components/stats-strip";
@@ -23,12 +24,15 @@ import { AddImportantDateDialog } from "@/components/add-important-date-dialog";
 import { DeleteLoyaltyProgramDialog } from "@/components/delete-loyalty-program-dialog";
 import { EditLoyaltyProgramDialog } from "@/components/edit-loyalty-program-dialog";
 import { EditNotesDialog } from "@/components/edit-notes-dialog";
+import { AssociatedTravelersSection } from "@/components/associated-travelers-section";
+import { DetailSection } from "@/components/detail-section";
 import {
   InlineSectionEmptyActionLabel,
   InlineSectionEmptyBox,
   inlineSectionEmptyActionTriggerClass,
 } from "@/components/inline-section-empty-box";
 import { cn } from "@/lib/utils";
+import { getTravelerGroupsForDisplay } from "@/lib/data";
 
 const editLinkCls =
   "text-[13px] font-normal text-fora-link no-underline hover:opacity-80";
@@ -113,91 +117,6 @@ function CopyEmailButton({ address }: { address: string }) {
   );
 }
 
-function Section({
-  title,
-  action,
-  children,
-  className,
-  defaultOpen = true,
-  open: controlledOpen,
-  onOpenChange,
-}: {
-  title: ReactNode;
-  action?: ReactNode;
-  children: ReactNode;
-  className?: string;
-  /** When false, the section starts collapsed. */
-  defaultOpen?: boolean;
-  /** When set with `onOpenChange`, the section is controlled (e.g. open from header). */
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}) {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isControlled = controlledOpen !== undefined;
-  const open = isControlled ? controlledOpen : internalOpen;
-
-  const toggle = () => {
-    if (isControlled) {
-      onOpenChange?.(!open);
-    } else {
-      setInternalOpen((o) => !o);
-    }
-  };
-
-  const contentId = useId();
-
-  return (
-    <section
-      className={cn(
-        "transition-[padding] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-        open ? "py-7" : "py-2",
-        className,
-      )}
-    >
-      <div
-        className={cn(
-          "flex items-start justify-between gap-4 transition-[padding] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-          open ? "pb-4" : "pb-0",
-        )}
-      >
-        <button
-          type="button"
-          onClick={toggle}
-          className="group -m-1 flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 text-left outline-none transition-colors hover:bg-fora-app/60 focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
-          aria-expanded={open}
-          aria-controls={contentId}
-        >
-          <ChevronDown
-            className={cn(
-              "size-4 shrink-0 text-fora-muted transition-transform duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-              open ? "rotate-0" : "-rotate-90",
-            )}
-            aria-hidden
-          />
-          <h3 className="min-w-0 flex-1 text-[11px] font-medium uppercase tracking-[0.08em] text-fora-muted">
-            {title}
-          </h3>
-        </button>
-        {action ? <div className="shrink-0 pt-0.5">{action}</div> : null}
-      </div>
-      <div
-        className={cn(
-          "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-        )}
-      >
-        <div
-          id={contentId}
-          className={cn("min-h-0 overflow-hidden", !open && "max-h-0")}
-          inert={open ? undefined : true}
-        >
-          {children}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FieldRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="grid grid-cols-[140px_1fr] items-start gap-x-6 gap-y-0 border-b border-fora-border py-3 last:border-b-0">
@@ -247,6 +166,14 @@ function ImportantDateRow({
 
 const SCROLL_TOP_PADDING_THRESHOLD_PX = 8;
 
+type ClientDetailTab = "details" | "associated";
+
+const clientDetailTabButtonClass =
+  "relative -mb-px border-b-2 border-transparent bg-transparent pb-2.5 text-[14px] font-normal leading-normal text-fora-muted outline-none transition-[color,border-color] duration-150 hover:text-black/70 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-black/15 focus-visible:ring-offset-2";
+
+const clientDetailTabButtonSelectedClass =
+  "border-black text-black font-medium hover:border-black hover:text-black";
+
 type LoyaltyDialogState = null | { kind: "add" } | { kind: "edit"; program: LoyaltyProgram };
 
 export function ClientDetailPane({ client, onClose }: { client: Client; onClose?: () => void }) {
@@ -265,6 +192,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   const [creditCardsOpen, setCreditCardsOpen] = useState(true);
   const [creditCardDetailsSignal, setCreditCardDetailsSignal] = useState(0);
   const creditCardsAnchorRef = useRef<HTMLDivElement>(null);
+  const [detailTab, setDetailTab] = useState<ClientDetailTab>("details");
 
   const notesSnapshot =
     Object.hasOwn(noteEdits, client.id) ? noteEdits[client.id] : client.notes;
@@ -345,6 +273,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   useEffect(() => {
     setCreditCardsOpen(true);
     setCreditCardDetailsSignal(0);
+    setDetailTab("details");
   }, [client.id]);
 
   return (
@@ -363,64 +292,107 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
         {/* Header — extra top padding while scrolled so the sticky title clears the viewport edge */}
         <div
           className={cn(
-            "sticky top-0 z-10 -mx-6 flex flex-col gap-4 border-b border-fora-border bg-white px-6 pb-4 transition-[padding-top] duration-200 ease-out sm:flex-row sm:items-start sm:justify-between lg:-mx-10 lg:px-10",
+            "sticky top-0 z-10 -mx-6 border-b border-fora-border bg-white px-6 pb-0 transition-[padding-top] duration-200 ease-out lg:-mx-10 lg:px-10",
             headerScrolled ? "pt-4" : "pt-0",
           )}
         >
-          <div className="min-w-0">
-            <h1 className="font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
-              {clientDisplayName(client)}
-            </h1>
-            <p className="mt-1 text-[14px] text-fora-muted">
-              {cityState || ""}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={revealCreditCardsSection}
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
-              aria-label="Show credit card details"
-            >
-              <CreditCard className="size-4" strokeWidth={1.75} aria-hidden />
-            </button>
-            <Menu.Root>
-              <Menu.Trigger
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
-                aria-label="More actions"
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
+                {clientDisplayName(client)}
+              </h1>
+              <p className="mt-1 text-[14px] text-fora-muted">
+                {cityState || ""}
+              </p>
+              <div
+                role="tablist"
+                aria-label="Client profile sections"
+                className="mt-5 flex flex-wrap gap-x-8 gap-y-1"
               >
-                <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
-              </Menu.Trigger>
-              <Menu.Portal>
-                <Menu.Positioner className="z-50" sideOffset={6} align="end">
-                  <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
-                    <Menu.Item
-                      className={cn(headerMoreMenuItemClass, "font-normal text-fora-danger")}
-                    >
-                      <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                      Delete client
-                    </Menu.Item>
-                  </Menu.Popup>
-                </Menu.Positioner>
-              </Menu.Portal>
-            </Menu.Root>
+                <button
+                  type="button"
+                  role="tab"
+                  id="client-tab-details-trigger"
+                  aria-selected={detailTab === "details"}
+                  aria-controls="client-tab-details-panel"
+                  tabIndex={detailTab === "details" ? 0 : -1}
+                  onClick={() => setDetailTab("details")}
+                  className={cn(
+                    clientDetailTabButtonClass,
+                    detailTab === "details" && clientDetailTabButtonSelectedClass,
+                  )}
+                >
+                  Details
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="client-tab-associated-trigger"
+                  aria-selected={detailTab === "associated"}
+                  aria-controls="client-tab-associated-panel"
+                  tabIndex={detailTab === "associated" ? 0 : -1}
+                  onClick={() => setDetailTab("associated")}
+                  className={cn(
+                    clientDetailTabButtonClass,
+                    detailTab === "associated" && clientDetailTabButtonSelectedClass,
+                  )}
+                >
+                  Companions
+                </button>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 sm:pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setDetailTab("details");
+                  revealCreditCardsSection();
+                }}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
+                aria-label="Show credit card details"
+              >
+                <CreditCard className="size-4" strokeWidth={1.75} aria-hidden />
+              </button>
+              <Menu.Root>
+                <Menu.Trigger
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
+                  aria-label="More actions"
+                >
+                  <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner className="z-50" sideOffset={6} align="end">
+                    <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                      <Menu.Item
+                        className={cn(headerMoreMenuItemClass, "font-normal text-fora-danger")}
+                      >
+                        <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                        Delete client
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
+            </div>
           </div>
         </div>
 
-        {/* KPI strip — anchor for "View bookings" from list row menus */}
-        <div id="bookings" className="scroll-mt-6">
-          <StatsStrip
-            bookingsCount={client.bookingsCount}
-            commissionableValue={client.commissionableValue}
-            commissions={client.commissions}
-            bookingsHref="#bookings"
-            className="mt-6"
-          />
-        </div>
+        {detailTab === "details" ? (
+          <div id="client-tab-details-panel" role="tabpanel" aria-labelledby="client-tab-details-trigger">
+            {/* KPI strip — anchor for "View bookings" from list row menus */}
+            <div id="bookings" className="scroll-mt-6">
+              <StatsStrip
+                bookingsCount={client.bookingsCount}
+                commissionableValue={client.commissionableValue}
+                commissions={client.commissions}
+                bookingsHref="#bookings"
+                className="mt-6"
+              />
+            </div>
 
-        {/* Sections */}
-        <div className="mt-4">
-          <Section
+            {/* Sections */}
+            <div className="mt-4">
+          <DetailSection
             title="Personal information"
             action={
               <Link
@@ -486,9 +458,9 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 }
               />
             </div>
-          </Section>
+          </DetailSection>
 
-          <Section
+          <DetailSection
             title="Important dates"
             action={
               <button
@@ -506,9 +478,9 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />
             </div>
             <AddImportantDateDialog open={addImportantDateOpen} onOpenChange={setAddImportantDateOpen} />
-          </Section>
+          </DetailSection>
 
-          <Section
+          <DetailSection
             title="Notes"
             action={
               <button
@@ -546,14 +518,14 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 setNoteEdits((prev) => ({ ...prev, [client.id]: text || null }))
               }
             />
-          </Section>
+          </DetailSection>
 
           <div
             id="credit-cards"
             ref={creditCardsAnchorRef}
             className="scroll-mt-28"
           >
-            <Section
+            <DetailSection
               title="Credit cards"
               open={creditCardsOpen}
               onOpenChange={setCreditCardsOpen}
@@ -593,10 +565,10 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 )}
               </div>
               <AddCreditCardDialog open={addCardOpen} onOpenChange={setAddCardOpen} />
-            </Section>
+            </DetailSection>
           </div>
 
-          <Section
+          <DetailSection
             title="Loyalty programs"
             action={
               email ? (
@@ -728,8 +700,25 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               program={loyaltyDeleteProgram}
               onDeleted={refreshAfterLoyaltyChange}
             />
-          </Section>
-        </div>
+          </DetailSection>
+            </div>
+          </div>
+        ) : (
+          <div
+            id="client-tab-associated-panel"
+            role="tabpanel"
+            aria-labelledby="client-tab-associated-trigger"
+          >
+            <AssociatedTravelersSection
+              clientId={client.id}
+              groups={getTravelerGroupsForDisplay(client)}
+              onRefresh={refreshAfterLoyaltyChange}
+              primaryClientName={clientDisplayName(client)}
+              primaryBookingRows={primaryClientFlightBookingCardRows(client)}
+              onOpenPrimaryClientProfile={() => setDetailTab("details")}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
