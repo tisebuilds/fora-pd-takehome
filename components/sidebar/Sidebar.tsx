@@ -91,7 +91,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "sticky top-0 flex h-dvh max-h-dvh shrink-0 flex-col self-start overflow-hidden border-r border-rule bg-paper antialiased transition-[width] duration-200 ease-out",
+        "sticky top-0 flex h-full max-h-full min-h-0 shrink-0 flex-col self-start overflow-hidden border-r border-rule bg-paper antialiased transition-[width] duration-200 ease-out",
         collapsed ? "w-[64px]" : "w-[270px]"
       )}
     >

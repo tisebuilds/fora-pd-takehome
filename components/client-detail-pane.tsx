@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import { Copy, Lock, Mail, MoreHorizontal, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { ChevronDown, Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
-import type { Client } from "@/lib/types";
+import type { Client, ImportantDate, LoyaltyProgram } from "@/lib/types";
 import {
   clientDisplayName,
+  formatAnnualEventCountdown,
   formatCityState,
   formatImportantDate,
   formatPhoneDisplay,
@@ -15,10 +18,25 @@ import { Flag } from "@/components/flag";
 import { StatsStrip } from "@/components/stats-strip";
 import { CreditCardRow } from "@/components/credit-card-row";
 import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
+import { AddImportantDateDialog } from "@/components/add-important-date-dialog";
+import { DeleteLoyaltyProgramDialog } from "@/components/delete-loyalty-program-dialog";
+import { EditLoyaltyProgramDialog } from "@/components/edit-loyalty-program-dialog";
+import { EditNotesDialog } from "@/components/edit-notes-dialog";
+import {
+  InlineSectionEmptyActionLabel,
+  InlineSectionEmptyBox,
+  inlineSectionEmptyActionTriggerClass,
+} from "@/components/inline-section-empty-box";
 import { cn } from "@/lib/utils";
 
 const editLinkCls =
   "text-[13px] font-normal text-fora-link no-underline hover:opacity-80";
+
+const headerMoreMenuItemClass =
+  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] outline-none transition-colors data-highlighted:bg-fora-app";
+
+const loyaltyRowMenuItemClass =
+  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
 function personalMobile(client: Client) {
   return client.phones.find((p) => p.type === "mobile") ?? client.phones[0];
@@ -26,6 +44,45 @@ function personalMobile(client: Client) {
 
 function personalEmail(client: Client) {
   return client.emails.find((e) => e.type === "personal") ?? client.emails[0];
+}
+
+function loyaltyProgramsRequestMailto(to: string, firstName: string) {
+  const subject = encodeURIComponent("Your loyalty program details");
+  const greet = firstName.trim() ? `Hi ${firstName.trim()},` : "Hi,";
+  const body = encodeURIComponent(
+    `${greet}\n\nWhen you have a moment, could you reply with your airline, hotel, car rental, and other loyalty program numbers (and any status levels) you would like us to save on your profile?\n\nThank you!`,
+  );
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+const LOYALTY_AVATAR_BGS = [
+  "bg-gradient-to-br from-[#1e3a8a] to-[#172554] text-white",
+  "bg-black text-white",
+  "bg-gradient-to-br from-[#0f766e] to-[#134e4a] text-white",
+  "bg-gradient-to-br from-[#9a3412] to-[#7c2d12] text-white",
+] as const;
+
+function loyaltyProgramInitials(programName: string): string {
+  const parts = programName
+    .split(/[\s·•,]+/)
+    .map((p) => p.replace(/[^a-zA-Z0-9]/g, ""))
+    .filter((p) => p.length > 0);
+  const stop = new Set(["of", "the", "and", "a", "an", "for"]);
+  const sig = parts.filter((p) => !stop.has(p.toLowerCase()));
+  if (sig.length === 0) {
+    const alnum = programName.replace(/[^a-zA-Z0-9]/g, "");
+    return (alnum.slice(0, 2) || "?").toUpperCase();
+  }
+  if (sig.length === 1) return sig[0]!.slice(0, 2).toUpperCase();
+  const a = sig[0]![0]!;
+  const b = sig[sig.length - 1]![0]!;
+  return (a + b).toUpperCase();
+}
+
+function loyaltyProgramAvatarClass(programName: string): string {
+  let h = 0;
+  for (let i = 0; i < programName.length; i++) h = (h + programName.charCodeAt(i)) % 997;
+  return LOYALTY_AVATAR_BGS[h % LOYALTY_AVATAR_BGS.length]!;
 }
 
 function NotProvided() {
@@ -60,21 +117,55 @@ function Section({
   action,
   children,
   className,
+  defaultOpen = true,
 }: {
   title: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** When false, the section starts collapsed. */
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const contentId = useId();
+
   return (
     <section className={cn("py-7", className)}>
-      <div className="flex items-center justify-between gap-4 pb-4">
-        <h3 className="text-[11px] font-medium uppercase tracking-[0.08em] text-fora-muted">
-          {title}
-        </h3>
-        {action}
+      <div className="flex items-start justify-between gap-4 pb-4">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="group -m-1 flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 text-left outline-none transition-colors hover:bg-fora-app/60 focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
+          aria-expanded={open}
+          aria-controls={contentId}
+        >
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-fora-muted transition-transform duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+              open ? "rotate-0" : "-rotate-90",
+            )}
+            aria-hidden
+          />
+          <h3 className="min-w-0 flex-1 text-[11px] font-medium uppercase tracking-[0.08em] text-fora-muted">
+            {title}
+          </h3>
+        </button>
+        {action ? <div className="shrink-0 pt-0.5">{action}</div> : null}
       </div>
-      <div>{children}</div>
+      <div
+        className={cn(
+          "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div
+          id={contentId}
+          className={cn("min-h-0 overflow-hidden", !open && "max-h-0")}
+          inert={open ? undefined : true}
+        >
+          {children}
+        </div>
+      </div>
     </section>
   );
 }
@@ -88,35 +179,76 @@ function FieldRow({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-function PillButton({
-  children,
-  href,
-  onClick,
-  ariaLabel,
+function ImportantDateRow({
+  label,
+  emoji,
+  date,
 }: {
-  children: ReactNode;
-  href?: string;
-  onClick?: () => void;
-  ariaLabel?: string;
+  label: string;
+  emoji: string;
+  date: ImportantDate | undefined;
 }) {
-  const cls =
-    "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-fora-border bg-white px-3.5 text-[13px] text-fora-navy transition-colors hover:bg-fora-app";
-  if (href) {
-    return (
-      <a href={href} className={cls} aria-label={ariaLabel}>
-        {children}
-      </a>
-    );
-  }
+  const formatted = date ? formatImportantDate(date.month, date.day, date.year) : null;
+  const countdown =
+    date && date.month != null && date.day != null
+      ? formatAnnualEventCountdown(date.month, date.day)
+      : null;
+
   return (
-    <button type="button" onClick={onClick} className={cls} aria-label={ariaLabel}>
-      {children}
-    </button>
+    <div className="flex items-center gap-3.5 py-4">
+      <div
+        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#FFF9EB] text-[22px] leading-none"
+        aria-hidden
+      >
+        {emoji}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] font-normal leading-tight text-fora-muted">{label}</p>
+        <p className="mt-0.5 text-[15px] font-semibold leading-tight tracking-[-0.01em] text-fora-navy">
+          {formatted ?? "—"}
+        </p>
+      </div>
+      {countdown ? (
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-[#F3F4F6] px-2.5 py-1.5 text-[12px] font-medium leading-none text-[#374151]">
+          {countdown}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
+const SCROLL_TOP_PADDING_THRESHOLD_PX = 8;
+
 export function ClientDetailPane({ client, onClose }: { client: Client; onClose?: () => void }) {
+  const router = useRouter();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
   const [addCardOpen, setAddCardOpen] = useState(false);
+  const [addImportantDateOpen, setAddImportantDateOpen] = useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  /** Local edits keyed by client id — avoids syncing `client.notes` via an effect. */
+  const [noteEdits, setNoteEdits] = useState<Record<string, string | null>>({});
+  const [notesFormKey, setNotesFormKey] = useState(0);
+  const [loyaltyEditProgram, setLoyaltyEditProgram] = useState<LoyaltyProgram | null>(null);
+  const [loyaltyDeleteProgram, setLoyaltyDeleteProgram] = useState<LoyaltyProgram | null>(null);
+  const [loyaltyEditFormKey, setLoyaltyEditFormKey] = useState(0);
+
+  const notesSnapshot =
+    Object.hasOwn(noteEdits, client.id) ? noteEdits[client.id] : client.notes;
+
+  const openNotesModal = () => {
+    setNotesFormKey((k) => k + 1);
+    setNotesDialogOpen(true);
+  };
+
+  const openLoyaltyEdit = (lp: LoyaltyProgram) => {
+    setLoyaltyEditFormKey((k) => k + 1);
+    setLoyaltyEditProgram(lp);
+  };
+
+  const refreshAfterLoyaltyChange = () => {
+    router.refresh();
+  };
 
   const mobile = personalMobile(client);
   const email = personalEmail(client);
@@ -125,8 +257,21 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   const anniversary = client.importantDates.find((d) => d.label === "Anniversary");
   const cityState = formatCityState(client);
 
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const sync = () => {
+      setHeaderScrolled(el.scrollTop > SCROLL_TOP_PADDING_THRESHOLD_PX);
+    };
+    sync();
+
+    el.addEventListener("scroll", sync, { passive: true });
+    return () => el.removeEventListener("scroll", sync);
+  }, [client.id]);
+
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+    <div ref={scrollContainerRef} className="flex h-full min-h-0 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-[860px] px-6 py-7 lg:px-10 lg:py-9">
         {onClose ? (
           <button
@@ -138,35 +283,42 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           </button>
         ) : null}
 
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        {/* Header — extra top padding while scrolled so the sticky title clears the viewport edge */}
+        <div
+          className={cn(
+            "sticky top-0 z-10 -mx-6 flex flex-col gap-4 border-b border-fora-border bg-white px-6 pb-4 transition-[padding-top] duration-200 ease-out sm:flex-row sm:items-start sm:justify-between lg:-mx-10 lg:px-10",
+            headerScrolled ? "pt-4" : "pt-0",
+          )}
+        >
           <div className="min-w-0">
             <h1 className="font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
               {clientDisplayName(client)}
             </h1>
             <p className="mt-1 text-[14px] text-fora-muted">
-              {[cityState, email?.address].filter(Boolean).join(" · ") || ""}
+              {cityState || ""}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <PillButton
-              href={email ? `mailto:${email.address}` : undefined}
-              ariaLabel="Send email"
-            >
-              <Mail className="size-3.5" strokeWidth={1.75} aria-hidden />
-              Email
-            </PillButton>
-            <PillButton ariaLabel="Add booking">
-              <Plus className="size-3.5" strokeWidth={1.75} aria-hidden />
-              Add booking
-            </PillButton>
-            <button
-              type="button"
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
-              aria-label="More actions"
-            >
-              <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
-            </button>
+            <Menu.Root>
+              <Menu.Trigger
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner className="z-50" sideOffset={6} align="end">
+                  <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                    <Menu.Item
+                      className={cn(headerMoreMenuItemClass, "font-normal text-fora-danger")}
+                    >
+                      <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                      Delete client
+                    </Menu.Item>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
           </div>
         </div>
 
@@ -179,11 +331,15 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
         />
 
         {/* Sections */}
-        <div className="mt-4 divide-y divide-fora-border">
+        <div className="mt-4">
           <Section
             title="Personal information"
             action={
-              <Link href={`/clients/${client.id}/edit`} className={editLinkCls}>
+              <Link
+                href={`/clients/${client.id}/edit`}
+                className={editLinkCls}
+                aria-label="Edit personal information"
+              >
                 Edit
               </Link>
             }
@@ -196,7 +352,12 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 value={
                   email ? (
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className="min-w-0 flex-1 truncate">{email.address}</span>
+                      <a
+                        href={`mailto:${email.address}`}
+                        className="min-w-0 flex-1 truncate text-[14px] text-fora-link no-underline hover:opacity-80"
+                      >
+                        {email.address}
+                      </a>
                       <CopyEmailButton address={email.address} />
                     </span>
                   ) : (
@@ -242,83 +403,96 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           <Section
             title="Important dates"
             action={
-              <Link href="#" className={editLinkCls}>
-                Edit
-              </Link>
+              <button
+                type="button"
+                onClick={() => setAddImportantDateOpen(true)}
+                className={editLinkCls}
+                aria-label="Add important date"
+              >
+                + Add
+              </button>
             }
           >
-            <div>
-              <FieldRow
-                label="Birthday"
-                value={
-                  birthday
-                    ? formatImportantDate(birthday.month, birthday.day, birthday.year) ?? "—"
-                    : "—"
-                }
-              />
-              <FieldRow
-                label="Anniversary"
-                value={
-                  anniversary
-                    ? formatImportantDate(
-                        anniversary.month,
-                        anniversary.day,
-                        anniversary.year
-                      ) ?? "—"
-                    : "—"
-                }
-              />
+            <div className="divide-y divide-[#EEEEEE]">
+              <ImportantDateRow label="Birthday" emoji="🎂" date={birthday} />
+              <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />
             </div>
+            <AddImportantDateDialog open={addImportantDateOpen} onOpenChange={setAddImportantDateOpen} />
           </Section>
 
           <Section
             title="Notes"
             action={
-              <Link href="#" className={editLinkCls}>
-                Edit
-              </Link>
+              <button
+                type="button"
+                onClick={openNotesModal}
+                className={editLinkCls}
+                aria-label={notesSnapshot ? "Edit client notes" : "Add client notes"}
+              >
+                {notesSnapshot ? "Edit" : "+ Add"}
+              </button>
             }
           >
-            {client.notes ? (
+            {notesSnapshot ? (
               <div className="rounded-lg bg-fora-app px-4 py-3 text-[14px] text-fora-navy">
-                {client.notes}
+                {notesSnapshot}
               </div>
             ) : (
               <p className="text-[14px] text-fora-muted">
                 Add your client&apos;s travel preferences…{" "}
                 <button
                   type="button"
+                  onClick={openNotesModal}
                   className="cursor-pointer bg-transparent p-0 text-fora-link no-underline hover:opacity-80"
                 >
                   Add notes
                 </button>
               </p>
             )}
+            <EditNotesDialog
+              open={notesDialogOpen}
+              onOpenChange={setNotesDialogOpen}
+              formKey={notesFormKey}
+              initialNotes={notesSnapshot}
+              onSave={(text) =>
+                setNoteEdits((prev) => ({ ...prev, [client.id]: text || null }))
+              }
+            />
           </Section>
 
           <Section
-            title={
-              <span className="inline-flex items-center gap-2">
-                <Lock className="size-3 shrink-0 text-fora-muted" strokeWidth={1.75} aria-hidden />
-                Credit cards
-              </span>
-            }
+            title="Credit cards"
             action={
-              <button
-                type="button"
-                onClick={() => setAddCardOpen(true)}
-                className={editLinkCls}
-              >
-                + Add
-              </button>
+              client.creditCards.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setAddCardOpen(true)}
+                  className={editLinkCls}
+                >
+                  + Add
+                </button>
+              ) : undefined
             }
           >
             <div className="space-y-3">
               {client.creditCards.length === 0 ? (
-                <p className="text-[14px] text-fora-muted">There are no credit cards saved</p>
+                <InlineSectionEmptyBox>
+                  <button
+                    type="button"
+                    className={inlineSectionEmptyActionTriggerClass}
+                    onClick={() => setAddCardOpen(true)}
+                  >
+                    <InlineSectionEmptyActionLabel>Add card</InlineSectionEmptyActionLabel>
+                  </button>
+                </InlineSectionEmptyBox>
               ) : (
                 client.creditCards.map((c) => (
-                  <CreditCardRow key={c.id} card={c} variant="detail" />
+                  <CreditCardRow
+                    key={c.id}
+                    card={c}
+                    variant="detail"
+                    billingAddress={client.addresses[0] ?? null}
+                  />
                 ))
               )}
             </div>
@@ -328,36 +502,120 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           <Section
             title="Loyalty programs"
             action={
-              <Link href="#" className={editLinkCls}>
-                Edit
-              </Link>
+              email ? (
+                <a
+                  href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
+                  className={editLinkCls}
+                  aria-label="Email client to add loyalty program details"
+                >
+                  + Add
+                </a>
+              ) : (
+                <Link
+                  href={`/clients/${client.id}/edit`}
+                  className={editLinkCls}
+                  aria-label="Add an email address, then request loyalty program details"
+                >
+                  + Add
+                </Link>
+              )
             }
           >
             {client.loyaltyPrograms.length === 0 ? (
-              <p className="text-[14px] text-fora-muted">No loyalty programs on file.</p>
+              <InlineSectionEmptyBox>
+                {email ? (
+                  <a
+                    href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
+                    className={cn(inlineSectionEmptyActionTriggerClass, "no-underline")}
+                  >
+                    <InlineSectionEmptyActionLabel>Email client</InlineSectionEmptyActionLabel>
+                  </a>
+                ) : (
+                  <Link
+                    href={`/clients/${client.id}/edit`}
+                    className={cn(inlineSectionEmptyActionTriggerClass, "no-underline")}
+                  >
+                    <InlineSectionEmptyActionLabel>Add email</InlineSectionEmptyActionLabel>
+                  </Link>
+                )}
+              </InlineSectionEmptyBox>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-2.5">
                 {client.loyaltyPrograms.map((lp) => (
                   <li
                     key={lp.id}
-                    className="rounded-lg border border-fora-border bg-fora-app px-4 py-3 text-[14px] text-fora-navy"
+                    className="flex items-center gap-3 rounded-[14px] border border-fora-border bg-white px-4 py-3.5"
                   >
-                    <span className="font-semibold">{lp.programName}</span>{" "}
-                    <span className="text-fora-muted">{lp.accountNumber}</span>
+                    <div
+                      className={cn(
+                        "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                        loyaltyProgramAvatarClass(lp.programName),
+                      )}
+                      aria-hidden
+                    >
+                      {loyaltyProgramInitials(lp.programName)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-semibold leading-tight text-fora-navy">
+                        {lp.programName}
+                      </p>
+                      <p className="mt-0.5 truncate text-[13px] font-normal leading-tight text-fora-muted">
+                        {lp.accountNumber}
+                      </p>
+                    </div>
+                    <Menu.Root>
+                      <Menu.Trigger
+                        type="button"
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
+                        aria-label={`More options for ${lp.programName}`}
+                      >
+                        <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
+                      </Menu.Trigger>
+                      <Menu.Portal>
+                        <Menu.Positioner sideOffset={6} align="end">
+                          <Menu.Popup className="z-50 min-w-[180px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                            <Menu.Item
+                              className={loyaltyRowMenuItemClass}
+                              onClick={() => openLoyaltyEdit(lp)}
+                            >
+                              <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                              Edit
+                            </Menu.Item>
+                            <Menu.Item
+                              className={cn(loyaltyRowMenuItemClass, "text-fora-danger")}
+                              onClick={() => setLoyaltyDeleteProgram(lp)}
+                            >
+                              <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                              Delete
+                            </Menu.Item>
+                          </Menu.Popup>
+                        </Menu.Positioner>
+                      </Menu.Portal>
+                    </Menu.Root>
                   </li>
                 ))}
               </ul>
             )}
+            <EditLoyaltyProgramDialog
+              open={loyaltyEditProgram !== null}
+              onOpenChange={(next) => {
+                if (!next) setLoyaltyEditProgram(null);
+              }}
+              formKey={loyaltyEditFormKey}
+              clientId={client.id}
+              program={loyaltyEditProgram}
+              onSaved={refreshAfterLoyaltyChange}
+            />
+            <DeleteLoyaltyProgramDialog
+              open={loyaltyDeleteProgram !== null}
+              onOpenChange={(next) => {
+                if (!next) setLoyaltyDeleteProgram(null);
+              }}
+              clientId={client.id}
+              program={loyaltyDeleteProgram}
+              onDeleted={refreshAfterLoyaltyChange}
+            />
           </Section>
-        </div>
-
-        <div className="mt-6 border-t border-fora-border pt-6">
-          <button
-            type="button"
-            className="cursor-pointer bg-transparent p-0 text-left text-[13px] font-normal text-fora-danger no-underline hover:opacity-80"
-          >
-            Delete client
-          </button>
         </div>
       </div>
     </div>

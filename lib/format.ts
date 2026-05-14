@@ -75,6 +75,62 @@ export function formatImportantDate(
   return `${m} ${day}, ${year}`;
 }
 
+function calendarDayDiff(from: Date, to: Date): number {
+  const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const b = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((b - a) / 86400000);
+}
+
+/** Next calendar date repeating `month`/`day` annually, on or after `from` (local). */
+function nextAnnualOccurrenceOnOrAfter(
+  month: number,
+  day: number,
+  from: Date = new Date(),
+): Date | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const y = from.getFullYear();
+  let candidate = new Date(y, month - 1, day);
+  const fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  if (candidate < fromMidnight) {
+    candidate = new Date(y + 1, month - 1, day);
+  }
+  return candidate;
+}
+
+/**
+ * Phrase for time until the next annual occurrence (e.g. "in 3 months").
+ * For recurring profile dates (birthday / anniversary).
+ * Returns null when the event is about four months away or farther (no countdown badge).
+ */
+export function formatAnnualEventCountdown(
+  month: number | null,
+  day: number | null,
+  from: Date = new Date(),
+): string | null {
+  if (month == null || day == null) return null;
+  const next = nextAnnualOccurrenceOnOrAfter(month, day, from);
+  if (!next) return null;
+  const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  const days = calendarDayDiff(today, next);
+  if (days < 0) return null;
+  /** Hide UI badge when the next occurrence is this many days out or more (~4 months). */
+  const COUNTDOWN_BADGE_MAX_DAYS = 120;
+  if (days >= COUNTDOWN_BADGE_MAX_DAYS) return null;
+  if (days === 0) return "Today";
+  if (days === 1) return "in 1 day";
+  if (days < 7) return `in ${days} days`;
+  if (days < 56) {
+    const w = Math.floor(days / 7);
+    return w === 1 ? "in 1 week" : `in ${w} weeks`;
+  }
+  if (days < 365) {
+    const mo = Math.max(1, Math.floor(days / 30));
+    return mo === 1 ? "in 1 month" : `in ${mo} months`;
+  }
+  const yr = Math.floor(days / 365);
+  return yr === 1 ? "in 1 year" : `in ${yr} years`;
+}
+
 export function emailTypeLabel(t: string): string {
   return t.toUpperCase();
 }
@@ -86,6 +142,12 @@ export function phoneTypeLabel(t: string): string {
 export function cardExpiry(m: number, y2: number): string {
   const mm = String(m).padStart(2, "0");
   return `${mm}/${String(y2).padStart(2, "0")}`;
+}
+
+/** Expiry for inline table-style rows, e.g. `10 / 27`. */
+export function cardExpirySpaced(m: number, y2: number): string {
+  const mm = String(m).padStart(2, "0");
+  return `${mm} / ${String(y2).padStart(2, "0")}`;
 }
 
 export function clientSearchBlob(c: Client): string {

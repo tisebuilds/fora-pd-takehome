@@ -12,6 +12,8 @@
   --font-mono: var(--font-geist-mono);
   --color-paper: #fdf0e4;
   --color-paper-lift: #f9d8b7;
+  /** Selected row in clients list pane only (matches accent cream; nav keeps paper-lift). */
+  --color-clients-list-row-active: #fef5ec;
   --color-ink: #1a1a1a;
   --color-ink-soft: #454545;
   --color-ink-mute: #707070;

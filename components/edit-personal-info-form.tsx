@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useTransition, type FormEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { saveClientPersonalInfo } from "@/app/clients/[id]/edit/actions";
@@ -78,10 +77,7 @@ function Section({
 }) {
   return (
     <section
-      className={cn(
-        "grid grid-cols-[120px_1fr] items-start gap-x-8 gap-y-0",
-        className
-      )}
+      className={cn("grid grid-cols-[120px_1fr] items-start gap-x-8 gap-y-0", className)}
     >
       <p className="pt-0.5 text-sm font-normal text-gray-500">{title}</p>
       <div>{children}</div>
@@ -139,180 +135,180 @@ export function EditPersonalInfoForm({ client }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[960px]">
-      <Link href={`/clients/${client.id}`} className="text-sm text-fora-link no-underline hover:opacity-80">
-        ← Go back
-      </Link>
-
+    <div className="mx-auto flex min-h-0 flex-1 w-full max-w-[860px] flex-col">
       <form
-        className="mt-8 w-full rounded-lg border border-[#E5E7EB] bg-white p-8 shadow-sm md:p-8"
+        className="flex min-h-0 w-full flex-1 flex-col"
         onSubmit={handleSubmit}
       >
-        <div className="divide-y divide-[#E5E7EB]">
-          <Section title="Name" className="pb-10">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6 pb-10 lg:px-10 lg:py-8 lg:pb-12">
+          <div className="pb-8">
+          <div className="divide-y divide-[#E5E7EB]">
+            <Section title="Name" className="pb-10">
             <div className="flex max-w-none flex-col gap-5">
-              <FieldShell label="Prefix">
-                <Select name="prefix" defaultValue={prefixDefault}>
-                  <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mr">Mr.</SelectItem>
-                    <SelectItem value="mrs">Mrs.</SelectItem>
-                    <SelectItem value="ms">Ms.</SelectItem>
-                    <SelectItem value="dr">Dr.</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FieldShell>
-              <FieldShell label="First name" required>
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  defaultValue={client.firstName}
-                  name="firstName"
-                />
-              </FieldShell>
-              <FieldShell label="Middle name">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Enter name"
-                  name="middleName"
-                />
-              </FieldShell>
-              <FieldShell label="Last name" required>
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={client.lastName} name="lastName" />
-              </FieldShell>
-              <FieldShell label="Suffix">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Enter suffix"
-                  defaultValue={client.nameEdit?.suffix}
-                  name="suffix"
-                />
-              </FieldShell>
-              <FieldShell label="Preferred name">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Enter name"
-                  defaultValue={client.nameEdit?.preferredName}
-                  name="preferredName"
-                />
-              </FieldShell>
-              <FieldShell label="Pronouns">
-                <Select name="pronouns" defaultValue={pronounsDefault}>
-                  <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="she">She/her</SelectItem>
-                    <SelectItem value="he">He/him</SelectItem>
-                    <SelectItem value="they">They/them</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FieldShell>
-            </div>
-          </Section>
-
-          <Section title="Email" className="py-10">
-            <div className="flex max-w-none flex-col gap-5">
-              <FieldShell label="Personal email">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  defaultValue={emailByType(client, "personal")}
-                  name="emailPersonal"
-                />
-              </FieldShell>
-              <FieldShell label="Work email">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Enter email"
-                  defaultValue={emailByType(client, "work") || undefined}
-                  name="emailWork"
-                />
-              </FieldShell>
-              <FieldShell label="Other email">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Enter email"
-                  defaultValue={emailByType(client, "other") || undefined}
-                  name="emailOther"
-                />
-              </FieldShell>
-            </div>
-          </Section>
-
-          <Section title="Phone number" className="py-10">
-            <div className="flex max-w-none flex-col gap-5">
-              {(
-                [
-                  ["Mobile phone", "mobile"],
-                  ["Home phone", "home"],
-                  ["Work phone", "work"],
-                  ["Other phone", "other"],
-                ] as const
-              ).map(([label, type]) => (
-                <FieldShell key={type} label={label}>
-                  <div className="flex gap-2">
-                    <FlagDial country={client.phones.find((p) => p.type === type)?.country ?? "US"} />
-                    <Input
-                      className={cn(FORM_CONTROL, "flex-1 px-2.5")}
-                      defaultValue={phoneFieldValue(client, type)}
-                      name={`phone-${type}`}
-                    />
-                  </div>
+                <FieldShell label="Prefix">
+                  <Select name="prefix" defaultValue={prefixDefault}>
+                    <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mr">Mr.</SelectItem>
+                      <SelectItem value="mrs">Mrs.</SelectItem>
+                      <SelectItem value="ms">Ms.</SelectItem>
+                      <SelectItem value="dr">Dr.</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FieldShell>
-              ))}
-            </div>
-          </Section>
+                <FieldShell label="First name" required>
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    defaultValue={client.firstName}
+                    name="firstName"
+                  />
+                </FieldShell>
+                <FieldShell label="Middle name">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Enter name"
+                    name="middleName"
+                  />
+                </FieldShell>
+                <FieldShell label="Last name" required>
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={client.lastName} name="lastName" />
+                </FieldShell>
+                <FieldShell label="Suffix">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Enter suffix"
+                    defaultValue={client.nameEdit?.suffix}
+                    name="suffix"
+                  />
+                </FieldShell>
+                <FieldShell label="Preferred name">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Enter name"
+                    defaultValue={client.nameEdit?.preferredName}
+                    name="preferredName"
+                  />
+                </FieldShell>
+                <FieldShell label="Pronouns">
+                  <Select name="pronouns" defaultValue={pronounsDefault}>
+                    <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="she">She/her</SelectItem>
+                      <SelectItem value="he">He/him</SelectItem>
+                      <SelectItem value="they">They/them</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FieldShell>
+              </div>
+            </Section>
 
-          <Section title="Address" className="pt-10">
-            <div className="flex max-w-none flex-col gap-5">
-              <FieldShell label="Address name">
-                <Input
-                  className={cn(FORM_CONTROL, "px-2.5")}
-                  placeholder="Example: Summer house"
-                  defaultValue={primaryAddress?.label || undefined}
-                  name="addressLabel"
-                />
-              </FieldShell>
-              <FieldShell label="Country">
-                <Select name="country" defaultValue={countryDefault}>
-                  <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="GB">United Kingdom</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FieldShell>
-              <FieldShell label="Address">
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.line1} name="address1" />
-              </FieldShell>
-              <FieldShell label="Apt number, suite, floor, etc.">
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.line2} name="address2" />
-              </FieldShell>
-              <FieldShell label="City">
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.city} name="city" />
-              </FieldShell>
-              <FieldShell label="State">
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.state} name="state" />
-              </FieldShell>
-              <FieldShell label="Zip code">
-                <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.zip} name="zip" />
-              </FieldShell>
-            </div>
-            <button type="button" className="mt-6 text-sm text-fora-link hover:underline">
-              Add another address
-            </button>
-          </Section>
+            <Section title="Email" className="py-10">
+              <div className="flex max-w-none flex-col gap-5">
+                <FieldShell label="Personal email">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    defaultValue={emailByType(client, "personal")}
+                    name="emailPersonal"
+                  />
+                </FieldShell>
+                <FieldShell label="Work email">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Enter email"
+                    defaultValue={emailByType(client, "work") || undefined}
+                    name="emailWork"
+                  />
+                </FieldShell>
+                <FieldShell label="Other email">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Enter email"
+                    defaultValue={emailByType(client, "other") || undefined}
+                    name="emailOther"
+                  />
+                </FieldShell>
+              </div>
+            </Section>
+
+            <Section title="Phone number" className="py-10">
+              <div className="flex max-w-none flex-col gap-5">
+                {(
+                  [
+                    ["Mobile phone", "mobile"],
+                    ["Home phone", "home"],
+                    ["Work phone", "work"],
+                    ["Other phone", "other"],
+                  ] as const
+                ).map(([label, type]) => (
+                  <FieldShell key={type} label={label}>
+                    <div className="flex gap-2">
+                      <FlagDial country={client.phones.find((p) => p.type === type)?.country ?? "US"} />
+                      <Input
+                        className={cn(FORM_CONTROL, "flex-1 px-2.5")}
+                        defaultValue={phoneFieldValue(client, type)}
+                        name={`phone-${type}`}
+                      />
+                    </div>
+                  </FieldShell>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Address" className="pt-10">
+              <div className="flex max-w-none flex-col gap-5">
+                <FieldShell label="Address name">
+                  <Input
+                    className={cn(FORM_CONTROL, "px-2.5")}
+                    placeholder="Example: Summer house"
+                    defaultValue={primaryAddress?.label || undefined}
+                    name="addressLabel"
+                  />
+                </FieldShell>
+                <FieldShell label="Country">
+                  <Select name="country" defaultValue={countryDefault}>
+                    <SelectTrigger className={cn(FORM_SELECT_TRIGGER, "w-full")} size="default">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="US">United States</SelectItem>
+                      <SelectItem value="GB">United Kingdom</SelectItem>
+                      <SelectItem value="CA">Canada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FieldShell>
+                <FieldShell label="Address">
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.line1} name="address1" />
+                </FieldShell>
+                <FieldShell label="Apt number, suite, floor, etc.">
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.line2} name="address2" />
+                </FieldShell>
+                <FieldShell label="City">
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.city} name="city" />
+                </FieldShell>
+                <FieldShell label="State">
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.state} name="state" />
+                </FieldShell>
+                <FieldShell label="Zip code">
+                  <Input className={cn(FORM_CONTROL, "px-2.5")} defaultValue={primaryAddress?.zip} name="zip" />
+                </FieldShell>
+              </div>
+              <button type="button" className="mt-6 text-sm text-fora-link hover:underline">
+                Add another address
+              </button>
+            </Section>
+          </div>
+        </div>
         </div>
 
-        <div className="mt-10 flex justify-end gap-4 border-t border-[#E5E7EB] pt-10">
+        <div className="relative z-10 flex shrink-0 justify-end gap-4 border-t border-[#E5E7EB] bg-white px-6 py-6 lg:px-10">
           <Button
             type="button"
             variant="ghost"
-            className="h-10 rounded-full px-4 text-gray-600 hover:text-gray-900"
+            className="h-10 px-4 text-gray-600 hover:text-gray-900"
             onClick={handleCancel}
             disabled={isPending}
           >
@@ -321,7 +317,7 @@ export function EditPersonalInfoForm({ client }: Props) {
           <Button
             type="submit"
             disabled={isPending}
-            className="h-10 rounded-full bg-black px-6 text-white hover:bg-gray-800"
+            className="h-10 bg-black px-6 text-white hover:bg-gray-800"
           >
             Save changes
           </Button>

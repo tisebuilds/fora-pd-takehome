@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Client } from "@/lib/types";
+import { clientAvatarToneClasses } from "@/lib/client-avatar-tone";
 import {
   clientDisplayName,
   clientInitials,
@@ -21,21 +22,17 @@ export function ClientListRow({ client, active }: Props) {
       href={`/clients/${client.id}`}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "group relative flex items-center gap-3 px-4 py-3 text-left transition-colors",
+        "flex items-center gap-3 px-4 py-3 text-left transition-colors",
         "hover:bg-fora-app",
-        active && "bg-paper-lift hover:bg-paper-lift"
+        active && "bg-clients-list-row-active hover:bg-clients-list-row-active"
       )}
     >
       <span
         aria-hidden
         className={cn(
-          "absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-ink",
-          active ? "opacity-100" : "opacity-0"
+          "flex size-9 shrink-0 items-center justify-center rounded-full text-[12px] font-medium tracking-[0.06em]",
+          clientAvatarToneClasses(client.id)
         )}
-      />
-      <span
-        aria-hidden
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-paper-lift text-[12px] font-medium tracking-[0.06em] text-ink"
       >
         {clientInitials(client)}
       </span>

@@ -36,6 +36,13 @@ export interface CreditCard {
   last4: string;
   expMonth: number;
   expYearTwoDigit: number;
+  /** Billing postal code — prototype seed / fixtures only; production should use a vault. */
+  billingZip?: string;
+  /**
+   * Fake card security code for UI prototypes (e.g. test PAN convention).
+   * Never store or surface real CVV/CVC in apps; PCI forbids retaining CVV after authorization.
+   */
+  cvvDemo?: string;
 }
 
 export interface LoyaltyProgram {

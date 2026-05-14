@@ -40,9 +40,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${serif.variable} ${inter.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${serif.variable} ${inter.variable} ${geistSans.variable} ${geistMono.variable} h-dvh overflow-hidden antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex h-dvh min-h-0 flex-col overflow-hidden">
         {children}
         <AppToaster />
       </body>

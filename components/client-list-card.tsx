@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Wallet } from "lucide-react";
@@ -9,12 +8,16 @@ import type { Client, ClientPhone } from "@/lib/types";
 import {
   clientDisplayName,
   clientInitials,
-  formatCityState,
   formatCurrency,
   formatPhoneDisplay,
 } from "@/lib/format";
 import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
 import { CreditCardRow } from "@/components/credit-card-row";
+import {
+  InlineSectionEmptyActionLabel,
+  InlineSectionEmptyBox,
+  inlineSectionEmptyActionTriggerClass,
+} from "@/components/inline-section-empty-box";
 import { Flag } from "@/components/flag";
 import { cn } from "@/lib/utils";
 
@@ -43,24 +46,12 @@ function phoneToTelHref(p: ClientPhone): string | null {
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
-function StatBlock({
-  label,
-  align = "left",
-  className,
-  children,
-}: {
-  label: string;
-  align?: "left" | "right";
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className={cn("min-w-0 shrink-0", align === "right" && "text-right", className)}>
-      <p className="text-[10px] font-medium uppercase tracking-wide text-[#6B7280]">{label}</p>
-      <div className="mt-0.5">{children}</div>
-    </div>
-  );
-}
+/** Shared grid for cards-mode table header (shell) and each data row — six columns: client (avatar+text), email, bookings, commissions, actions. */
+export const clientListTableGridClass =
+  "grid w-full grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_3.5rem_4.75rem_2.75rem] gap-x-3 items-center sm:gap-x-4";
+
+const navCellClass =
+  "cursor-pointer rounded-md text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 focus-visible:ring-offset-0";
 
 export function ClientListCard({ client, onViewDetails }: Props) {
   const [addCreditOpen, setAddCreditOpen] = useState(false);
@@ -69,73 +60,104 @@ export function ClientListCard({ client, onViewDetails }: Props) {
   const phoneText = phone ? formatPhoneDisplay(phone) : null;
   const telHref = phone ? phoneToTelHref(phone) : null;
   const email = primaryEmail(client);
-  const cityState = formatCityState(client);
-  const subParts = [cityState, email].filter(Boolean);
-  const subline = subParts.length > 0 ? subParts.join(" \u00B7 ") : null;
 
   const profileHref = `/clients/${client.id}`;
 
-  const rowClassName = cn(
-    "grid min-w-0 flex-1 grid-cols-[auto_1fr] items-center gap-3 text-left outline-none sm:grid-cols-[auto_1fr_minmax(0,7rem)] sm:gap-4 md:grid-cols-[auto_1fr_7.5rem_3.5rem_4.25rem] md:gap-5",
-    "rounded-l-xl transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 focus-visible:ring-offset-0",
-    onViewDetails != null
-      ? "cursor-pointer hover:bg-black/[0.02] active:bg-black/[0.03]"
-      : "cursor-pointer hover:bg-black/[0.02]"
+  const avatarCell = (
+    <div
+      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F3E8D6] text-[13px] font-semibold text-[#111827]"
+      aria-hidden
+    >
+      {clientInitials(client)}
+    </div>
   );
 
-  const rowBody = (
-    <>
-      <div
-        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F3E8D6] text-[13px] font-semibold text-[#111827]"
-        aria-hidden
-      >
-        {clientInitials(client)}
-      </div>
-
-      <div className="min-w-0">
-        <p className="truncate text-[15px] font-semibold text-[#111827]">{clientDisplayName(client)}</p>
-        <p className="mt-0.5 truncate text-[13px] text-[#6B7280]">
-          {subline ?? <span className="italic">No location or email</span>}
-        </p>
-      </div>
-
-      <StatBlock label="Phone" className="col-span-2 mt-2 min-w-0 sm:col-span-1 sm:mt-0 md:min-w-0">
+  const nameAndPhoneCell = (
+    <div className="min-w-0">
+      <p className="truncate text-[15px] font-semibold text-[#111827]">{clientDisplayName(client)}</p>
+      <p className="mt-0.5 text-[13px] text-[#6B7280]">
         {phone && phoneText ? (
-          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[#111827] sm:text-[14px]">
-            <Flag code={phone.country} className="text-[14px] leading-none" />
-            <span className="min-w-0 truncate">{phoneText}</span>
-          </p>
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <Flag code={phone.country} className="shrink-0 text-[14px] leading-none" />
+            <span>{phoneText}</span>
+          </span>
         ) : (
-          <p className="text-[13px] font-medium italic text-[#6B7280]">—</p>
+          <span className="italic">No phone</span>
         )}
-      </StatBlock>
+      </p>
+    </div>
+  );
 
-      <StatBlock label="Bookings" align="right" className="hidden md:block">
-        <p className="text-[14px] font-semibold tabular-nums text-[#111827]">{client.bookingsCount}</p>
-      </StatBlock>
+  const emailCell = (
+    <div className="flex min-w-0 w-full items-center overflow-hidden">
+      {email ? (
+        <a
+          href={`mailto:${email}`}
+          title={email}
+          className="block w-full min-w-0 truncate text-[13px] font-semibold text-[#111827] underline-offset-2 hover:underline sm:text-[14px]"
+        >
+          {email}
+        </a>
+      ) : (
+        <span className="text-[13px] font-medium italic text-[#6B7280]">—</span>
+      )}
+    </div>
+  );
 
-      <StatBlock label="Commissions" align="right" className="hidden md:block">
-        <p className="text-[14px] font-semibold tabular-nums text-[#059669]">
-          {formatCurrency(client.commissions)}
-        </p>
-      </StatBlock>
-    </>
+  const bookingsCell = (
+    <p className="text-right text-[14px] font-semibold tabular-nums text-[#111827]">{client.bookingsCount}</p>
+  );
+
+  const commissionsCell = (
+    <p className="text-right text-[14px] font-semibold tabular-nums text-[#111827]">
+      {formatCurrency(client.commissions)}
+    </p>
   );
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
-      <div className="flex items-stretch gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-3.5">
+    <div className="flex flex-col bg-white">
+      <div
+        className={cn(
+          clientListTableGridClass,
+          "px-4 py-3.5 transition-colors hover:bg-black/[0.02]",
+          onViewDetails != null && "active:bg-black/[0.03]"
+        )}
+      >
         {onViewDetails ? (
-          <button type="button" onClick={onViewDetails} className={rowClassName}>
-            {rowBody}
-          </button>
+          <>
+            <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-center")}>
+              {avatarCell}
+            </button>
+            <button type="button" onClick={onViewDetails} className={navCellClass}>
+              {nameAndPhoneCell}
+            </button>
+            <div className="min-w-0">{emailCell}</div>
+            <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-end")}>
+              {bookingsCell}
+            </button>
+            <button type="button" onClick={onViewDetails} className={cn(navCellClass, "flex justify-end")}>
+              {commissionsCell}
+            </button>
+          </>
         ) : (
-          <Link href={profileHref} className={cn(rowClassName, "no-underline")}>
-            {rowBody}
-          </Link>
+          <>
+            <Link href={profileHref} className={cn(navCellClass, "flex justify-center no-underline")}>
+              {avatarCell}
+            </Link>
+            <Link href={profileHref} className={cn(navCellClass, "no-underline")}>
+              {nameAndPhoneCell}
+            </Link>
+            <div className="min-w-0">{emailCell}</div>
+            <Link href={profileHref} className={cn(navCellClass, "flex justify-end no-underline")}>
+              {bookingsCell}
+            </Link>
+            <Link href={profileHref} className={cn(navCellClass, "flex justify-end no-underline")}>
+              {commissionsCell}
+            </Link>
+          </>
         )}
 
-        <div className="flex shrink-0 items-center">
+        <div className="flex shrink-0 justify-end">
           <Menu.Root>
             <Menu.Trigger
               className="inline-flex size-9 items-center justify-center rounded-full bg-transparent text-[#6B7280] transition-colors hover:bg-[#F9F7F2] hover:text-[#111827] aria-expanded:bg-[#F9F7F2]"
@@ -157,10 +179,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                       View client details
                     </Menu.LinkItem>
                   )}
-                  <Menu.Item
-                    onClick={() => setCreditPanelOpen(true)}
-                    className={menuItemClass}
-                  >
+                  <Menu.Item onClick={() => setCreditPanelOpen(true)} className={menuItemClass}>
                     <Wallet className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     View credit card details
                   </Menu.Item>
@@ -168,12 +187,12 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                     <CreditCard className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     Add credit card
                   </Menu.Item>
-                {telHref ? (
-                  <Menu.LinkItem href={telHref} className={menuItemClass} closeOnClick>
-                    <Phone className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                    Call
-                  </Menu.LinkItem>
-                ) : null}
+                  {telHref ? (
+                    <Menu.LinkItem href={telHref} className={menuItemClass} closeOnClick>
+                      <Phone className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                      Call
+                    </Menu.LinkItem>
+                  ) : null}
                   {email ? (
                     <Menu.LinkItem href={`mailto:${email}`} className={menuItemClass} closeOnClick>
                       <Mail className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
@@ -195,27 +214,42 @@ export function ClientListCard({ client, onViewDetails }: Props) {
       >
         <div className="min-h-0">
           <div
-            className="border-t border-[#E5E7EB] px-3 pb-3 pt-3 sm:px-4 sm:pb-3.5 sm:pt-3.5"
+            className="border-t border-[#E5E7EB] px-4 pb-3 pt-3 sm:pb-3.5 sm:pt-3.5"
             inert={creditPanelOpen ? undefined : true}
           >
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-[11px] font-medium uppercase tracking-wide text-[#6B7280]">
-                Credit cards
-              </h3>
-              <button
-                type="button"
-                className="text-[13px] text-fora-link no-underline hover:opacity-80"
-                onClick={() => setCreditPanelOpen(false)}
-              >
-                Hide
-              </button>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[11px] font-medium uppercase tracking-wide text-[#6B7280]">Credit cards</h3>
+              {creditPanelOpen ? (
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm text-[13px] font-medium text-[#9CA3AF] no-underline outline-none transition-colors hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20"
+                  onClick={() => setCreditPanelOpen(false)}
+                >
+                  Hide
+                </button>
+              ) : null}
             </div>
             {client.creditCards.length === 0 ? (
-              <p className="mt-2 text-[13px] text-[#6B7280]">No credit cards on file.</p>
+              <InlineSectionEmptyBox className="mt-2">
+                <button
+                  type="button"
+                  className={inlineSectionEmptyActionTriggerClass}
+                  onClick={() => setAddCreditOpen(true)}
+                >
+                  <InlineSectionEmptyActionLabel>Add card</InlineSectionEmptyActionLabel>
+                </button>
+              </InlineSectionEmptyBox>
             ) : (
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="mt-2 flex flex-col divide-y divide-[#E5E7EB] rounded-lg border border-[#E5E7EB] bg-[#FAFAFA]">
                 {client.creditCards.map((c) => (
-                  <CreditCardRow key={c.id} card={c} embeddedListWithCopy />
+                  <CreditCardRow
+                    key={c.id}
+                    card={c}
+                    embeddedListWithCopy
+                    billingAddress={client.addresses[0]}
+                    showHideInEmbedRow={false}
+                    showEmbedChromeActions={false}
+                  />
                 ))}
               </div>
             )}
@@ -224,6 +258,6 @@ export function ClientListCard({ client, onViewDetails }: Props) {
       </div>
 
       <AddCreditCardDialog open={addCreditOpen} onOpenChange={setAddCreditOpen} />
-    </article>
+    </div>
   );
 }

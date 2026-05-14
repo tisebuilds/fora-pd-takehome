@@ -1,4 +1,11 @@
-import type { Client, ClientAddress, ClientEmail, ClientPhone, PhoneType } from "@/lib/types";
+import type {
+  Client,
+  ClientAddress,
+  ClientEmail,
+  ClientPhone,
+  LoyaltyProgram,
+  PhoneType,
+} from "@/lib/types";
 
 /**
  * Hardcoded seed data for the Porta scaffold — all names and numbers are fictional.
@@ -40,6 +47,8 @@ export const clients: Client[] = [
         last4: "0943",
         expMonth: 10,
         expYearTwoDigit: 27,
+        billingZip: "10016",
+        cvvDemo: "123",
       },
     ],
     loyaltyPrograms: [
@@ -271,6 +280,8 @@ export const clients: Client[] = [
         last4: "4411",
         expMonth: 4,
         expYearTwoDigit: 28,
+        billingZip: "33131",
+        cvvDemo: "456",
       },
     ],
     loyaltyPrograms: [],
@@ -307,6 +318,8 @@ export const clients: Client[] = [
         last4: "1002",
         expMonth: 12,
         expYearTwoDigit: 29,
+        billingZip: "80290",
+        cvvDemo: "1234",
       },
     ],
     loyaltyPrograms: [{ id: "loy-jr-1", programName: "United MileagePlus", accountNumber: "MP778812" }],
@@ -373,6 +386,31 @@ export function updateClientPersonalInfo(
     client.addresses[0] = { ...input.primaryAddress };
   }
 
+  return true;
+}
+
+/** Mutates the in-memory seed client — used by loyalty program Server Actions. */
+export function updateLoyaltyProgram(
+  clientId: string,
+  programId: string,
+  patch: Pick<LoyaltyProgram, "programName" | "accountNumber">,
+): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return false;
+  const program = client.loyaltyPrograms.find((p) => p.id === programId);
+  if (!program) return false;
+  program.programName = patch.programName.trim();
+  program.accountNumber = patch.accountNumber.trim();
+  return true;
+}
+
+/** Mutates the in-memory seed client — used by loyalty program Server Actions. */
+export function deleteLoyaltyProgram(clientId: string, programId: string): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return false;
+  const idx = client.loyaltyPrograms.findIndex((p) => p.id === programId);
+  if (idx === -1) return false;
+  client.loyaltyPrograms.splice(idx, 1);
   return true;
 }
 

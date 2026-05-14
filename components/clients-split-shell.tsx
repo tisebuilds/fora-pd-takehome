@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 import type { Client } from "@/lib/types";
 import { clientSearchBlob } from "@/lib/format";
@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ClientSortMenu, type ClientSortKey } from "@/components/client-sort-menu";
 import { ClientListRow } from "@/components/client-list-row";
-import { ClientListCard } from "@/components/client-list-card";
-import { ClientDetailDrawer } from "@/components/client-detail-drawer";
+import { ClientListCard, clientListTableGridClass } from "@/components/client-list-card";
 import {
   CLIENTS_LAYOUT_CLEARED_EVENT,
   ClientsPrototypeEntrance,
@@ -43,7 +42,6 @@ function compareClients(a: Client, b: Client, sort: ClientSortKey): number {
 type PrototypePhase = "checking" | "gate" | "app";
 
 export function ClientsSplitShell({ clients, children }: Props) {
-  const router = useRouter();
   const pathname = usePathname() ?? "";
   const segments = pathname.split("/").filter(Boolean);
   // `/clients/:id` → segments = ["clients", ":id"]; `/clients` → ["clients"]
@@ -78,9 +76,9 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   const [prototypePhase, setPrototypePhase] = useState<PrototypePhase>("checking");
   const [layoutView, setLayoutView] = useState<ClientsLayoutView>("split");
-  const [drawerClient, setDrawerClient] = useState<Client | null>(null);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- client-only: read layout preference from localStorage after mount (unavailable during SSR). */
     const pref = getClientsLayoutPreference();
     if (pref) {
       setLayoutView(pref);
@@ -88,6 +86,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
     } else {
       setPrototypePhase("gate");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   useEffect(() => {
@@ -98,7 +97,6 @@ export function ClientsSplitShell({ clients, children }: Props) {
         setPrototypePhase("app");
       } else {
         setPrototypePhase("gate");
-        setDrawerClient(null);
       }
     };
     window.addEventListener(CLIENTS_LAYOUT_CLEARED_EVENT, syncFromStorage);
@@ -112,14 +110,6 @@ export function ClientsSplitShell({ clients, children }: Props) {
   };
 
   const isSplit = layoutView === "split";
-
-  useEffect(() => {
-    if (prototypePhase !== "app" || layoutView !== "cards" || !explicitId) return;
-    const c = clients.find((x) => x.id === explicitId);
-    if (!c) return;
-    setDrawerClient(c);
-    router.replace("/clients");
-  }, [prototypePhase, layoutView, explicitId, clients, router]);
 
   /** Cards mode uses the same search string but ignores sort (original prototype). */
   const visibleCards = useMemo(() => {
@@ -146,32 +136,29 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Top bar — hidden on mobile when viewing a client detail */}
-      <header
-        className={cn(
-          "shrink-0 bg-fora-app px-4 py-4 sm:px-6 lg:px-8",
-          hasSelection && isSplit && "hidden lg:block"
-        )}
-      >
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex min-w-0 flex-row flex-wrap items-baseline gap-2">
-            <h1 className="font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
-              Clients
-            </h1>
-            <p className="text-sm text-fora-muted tabular-nums">{clients.length}</p>
+      {/* Top bar — list only; hidden on `/clients/:id` (detail shows "← All clients" below) */}
+      {!hasSelection ? (
+        <header className="shrink-0 bg-fora-app px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex min-w-0 flex-row flex-wrap items-baseline gap-2">
+              <h1 className="font-sans text-[34px] font-bold leading-tight tracking-tight text-fora-navy">
+                Clients
+              </h1>
+              <p className="text-sm text-fora-muted tabular-nums">{clients.length}</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+              <Button
+                type="button"
+                variant="default"
+                className="h-11 shrink-0 gap-1.5 rounded-lg px-6 text-[15px] font-medium"
+              >
+                <Plus className="size-4" strokeWidth={2} aria-hidden />
+                Add client
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-            <Button
-              type="button"
-              variant="default"
-              className="h-11 shrink-0 gap-1.5 rounded-lg px-6 text-[15px] font-medium"
-            >
-              <Plus className="size-4" strokeWidth={2} aria-hidden />
-              Add client
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       {isSplit ? (
         <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:gap-0 lg:px-8">
@@ -194,7 +181,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search by name, email, or city…"
                     aria-label="Search clients"
-                    className="h-10 w-full rounded-lg border-fora-border bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted"
+                    className="h-10 w-full rounded-lg border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
                   />
                 </div>
                 <ClientSortMenu
@@ -240,36 +227,63 @@ export function ClientsSplitShell({ clients, children }: Props) {
             </section>
           </div>
         </div>
+      ) : explicitId ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            href="/clients"
+            className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80"
+          >
+            ← All clients
+          </Link>
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white">
+            {children}
+          </section>
+        </div>
       ) : (
-        <>
-          <div className="min-h-0 flex-1 overflow-y-auto bg-[#F9F7F2] px-4 py-4 sm:px-6 lg:px-8">
-            <div className="mx-auto w-full max-w-6xl">
-              <div className="relative w-full min-w-0">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3.5 size-[18px] -translate-y-1/2 text-fora-muted"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search by name, email, phone, or location"
-                  className="h-11 rounded-lg border-[#E5E7EB] bg-white pl-11 pr-3 text-[15px] shadow-none"
-                />
-              </div>
-            </div>
-            <div className="mx-auto mt-6 flex w-full max-w-6xl flex-col gap-2">
-              {visibleCards.length === 0 ? (
-                <p className="text-sm text-fora-muted">No clients match your search.</p>
-              ) : (
-                visibleCards.map((c) => (
-                  <ClientListCard key={c.id} client={c} onViewDetails={() => setDrawerClient(c)} />
-                ))
-              )}
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F9F7F2] px-4 py-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="relative w-full min-w-0">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3.5 size-[18px] -translate-y-1/2 text-fora-muted"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by name, email, phone, or location"
+                aria-label="Search clients"
+                className="h-11 rounded-lg border-[#E5E7EB] bg-white pl-11 pr-3 text-[15px] shadow-none"
+              />
             </div>
           </div>
-          <ClientDetailDrawer client={drawerClient} onClose={() => setDrawerClient(null)} />
-        </>
+          <div className="mx-auto mt-6 w-full max-w-6xl overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
+            {visibleCards.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-fora-muted">No clients match your search.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="min-w-[640px] divide-y divide-[#E5E7EB]">
+                  <div
+                    role="row"
+                    className={cn(
+                      clientListTableGridClass,
+                      "bg-[#F5F5F4] px-4 py-2.5 text-[10px] font-medium uppercase tracking-wide text-[#6B7280]"
+                    )}
+                  >
+                    <div className="col-span-2">Client</div>
+                    <div className="min-w-0">Email</div>
+                    <div className="text-right tabular-nums">Bookings</div>
+                    <div className="text-right">Commissions</div>
+                    <div aria-hidden className="min-h-0 min-w-0" />
+                  </div>
+                  {visibleCards.map((c) => (
+                    <ClientListCard key={c.id} client={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
