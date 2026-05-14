@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, Search } from "lucide-react";
+import { ArrowLeft, Plus, Search } from "lucide-react";
 import type { Client } from "@/lib/types";
 import { clientSearchBlob } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,13 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   const isSplit = layoutView === "split";
 
+  /** Split + client detail on viewports below `lg`: list is hidden so the top bar would duplicate chrome; hide until desktop. */
+  const hideClientsHeader =
+    isSplit && hasSelection && !isLg;
+
+  /** Cards with selection: unchanged — no top bar. Split otherwise shows bar unless mobile client detail. */
+  const showClientsHeader = (!hasSelection || isSplit) && !hideClientsHeader;
+
   /** Cards mode uses the same search string but ignores sort (original prototype). */
   const visibleCards = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -128,7 +135,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   if (prototypePhase === "gate") {
     return (
-      <div className="flex min-h-0 flex-1 flex-col bg-[#FAF7F2]">
+      <div className="flex min-h-0 flex-1 flex-col bg-fora-app">
         <ClientsPrototypeEntrance onChoose={handlePrototypeChosen} />
       </div>
     );
@@ -136,8 +143,8 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Top bar — always in split layout (including `/clients/:id`); hidden in card list when a client is open. Edit uses `/clients/[id]/edit` outside this shell. */}
-      {!hasSelection || isSplit ? (
+      {/* Top bar — split: hidden on mobile when a client is open (Back + detail only). Cards: hidden when a client is open. */}
+      {showClientsHeader ? (
         <header className="shrink-0 bg-fora-app px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex min-w-0 flex-row flex-wrap items-baseline gap-2">
@@ -149,10 +156,10 @@ export function ClientsSplitShell({ clients, children }: Props) {
             <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
               <Button
                 type="button"
-                variant="default"
-                className="h-11 shrink-0 gap-1.5 rounded-lg px-6 text-[15px] font-medium"
+                variant="outline"
+                className="h-11 shrink-0 gap-1.5 rounded-lg border-[#E0E0E0] bg-white px-6 text-[15px] font-medium text-[#666666] hover:border-[#E0E0E0] hover:bg-neutral-100 hover:text-[#666666] aria-expanded:border-[#E0E0E0] aria-expanded:bg-neutral-100 aria-expanded:text-[#666666] dark:border-[#E0E0E0] dark:bg-white dark:text-[#666666] dark:hover:border-[#E0E0E0] dark:hover:bg-neutral-100 dark:hover:text-[#666666] dark:aria-expanded:border-[#E0E0E0] dark:aria-expanded:bg-neutral-100 dark:aria-expanded:text-[#666666]"
               >
-                <Plus className="size-4" strokeWidth={2} aria-hidden />
+                <Plus className="size-4 text-[#666666]" strokeWidth={2} aria-hidden />
                 Add client
               </Button>
             </div>
@@ -217,8 +224,9 @@ export function ClientsSplitShell({ clients, children }: Props) {
             {hasSelection ? (
               <Link
                 href="/clients"
-                className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80 lg:hidden"
+                className="inline-flex shrink-0 items-center gap-1 text-sm text-fora-link no-underline hover:opacity-80 lg:hidden"
               >
+                <ArrowLeft className="size-4 shrink-0" strokeWidth={2} aria-hidden />
                 Back
               </Link>
             ) : null}
@@ -231,8 +239,9 @@ export function ClientsSplitShell({ clients, children }: Props) {
         <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <Link
             href="/clients"
-            className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80"
+            className="inline-flex shrink-0 items-center gap-1 text-sm text-fora-link no-underline hover:opacity-80"
           >
+            <ArrowLeft className="size-4 shrink-0" strokeWidth={2} aria-hidden />
             Back
           </Link>
           <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white">

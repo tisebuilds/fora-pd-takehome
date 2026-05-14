@@ -90,7 +90,7 @@ function CardListIllustration() {
 }
 
 const cardShell =
-  "group flex w-full flex-col overflow-hidden rounded-2xl border border-[#E8E4DE] bg-white text-left shadow-[0_1px_2px_rgb(0_0_0_/_.04)] transition-[border-color,box-shadow] hover:border-[#D4CEC3] hover:shadow-[0_2px_8px_rgb(0_0_0_/_.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#333333]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAF7F2]";
+  "group flex w-full flex-col overflow-hidden rounded-2xl border border-[#E8E4DE] bg-white text-left shadow-[0_1px_2px_rgb(0_0_0_/_.04)] transition-[border-color,box-shadow] hover:border-[#D4CEC3] hover:shadow-[0_2px_8px_rgb(0_0_0_/_.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#333333]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-fora-app";
 
 /**
  * Full-screen entry step: reviewer must pick which clients prototype to enter

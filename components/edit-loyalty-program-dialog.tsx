@@ -4,7 +4,10 @@ import { useCallback, useId, useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { toast } from "sonner";
 import type { LoyaltyProgram } from "@/lib/types";
-import { saveLoyaltyProgramAction } from "@/app/clients/loyalty-program-actions";
+import {
+  addLoyaltyProgramAction,
+  saveLoyaltyProgramAction,
+} from "@/app/clients/loyalty-program-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,21 +21,23 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   formKey: number;
   clientId: string;
+  mode: "add" | "edit";
   program: LoyaltyProgram | null;
   onSaved: () => void;
 };
 
 type FormProps = {
   clientId: string;
-  program: LoyaltyProgram;
+  mode: "add" | "edit";
+  program: LoyaltyProgram | null;
   onSaved: () => void;
   onClose: () => void;
 };
 
-function EditLoyaltyProgramForm({ clientId, program, onSaved, onClose }: FormProps) {
+function LoyaltyProgramForm({ clientId, mode, program, onSaved, onClose }: FormProps) {
   const reactId = useId();
-  const [programName, setProgramName] = useState(program.programName);
-  const [accountNumber, setAccountNumber] = useState(program.accountNumber);
+  const [programName, setProgramName] = useState(program?.programName ?? "");
+  const [accountNumber, setAccountNumber] = useState(program?.accountNumber ?? "");
   const [pending, setPending] = useState(false);
 
   return (
@@ -42,17 +47,30 @@ function EditLoyaltyProgramForm({ clientId, program, onSaved, onClose }: FormPro
         e.preventDefault();
         setPending(true);
         try {
-          const result = await saveLoyaltyProgramAction(
-            clientId,
-            program.id,
-            programName,
-            accountNumber,
-          );
-          if (!result.ok) {
-            toast.error(result.error);
-            return;
+          if (mode === "add") {
+            const result = await addLoyaltyProgramAction(clientId, programName, accountNumber);
+            if (!result.ok) {
+              toast.error(result.error);
+              return;
+            }
+            toast.success("Loyalty program added");
+          } else {
+            if (!program) {
+              toast.error("Missing program to edit.");
+              return;
+            }
+            const result = await saveLoyaltyProgramAction(
+              clientId,
+              program.id,
+              programName,
+              accountNumber,
+            );
+            if (!result.ok) {
+              toast.error(result.error);
+              return;
+            }
+            toast.success("Loyalty program updated");
           }
-          toast.success("Loyalty program updated");
           onSaved();
           onClose();
         } finally {
@@ -103,7 +121,7 @@ function EditLoyaltyProgramForm({ clientId, program, onSaved, onClose }: FormPro
           disabled={pending}
           className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
         >
-          Save
+          {mode === "add" ? "Add program" : "Save"}
         </Button>
       </div>
     </form>
@@ -115,6 +133,7 @@ export function EditLoyaltyProgramDialog({
   onOpenChange,
   formKey,
   clientId,
+  mode,
   program,
   onSaved,
 }: Props) {
@@ -128,6 +147,8 @@ export function EditLoyaltyProgramDialog({
   const close = useCallback(() => {
     handleOpenChange(false);
   }, [handleOpenChange]);
+
+  const showForm = open && (mode === "add" || program !== null);
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -144,17 +165,19 @@ export function EditLoyaltyProgramDialog({
             )}
           >
             <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
-              Edit loyalty program
+              {mode === "add" ? "Add loyalty program" : "Edit loyalty program"}
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-sm text-fora-muted">
-              Update the program name and account number. Changes apply to this demo profile until
-              the server restarts.
+              {mode === "add"
+                ? "Enter the program name and account number. Changes apply to this demo profile until the server restarts."
+                : "Update the program name and account number. Changes apply to this demo profile until the server restarts."}
             </Dialog.Description>
 
-            {open && program ? (
-              <EditLoyaltyProgramForm
+            {showForm ? (
+              <LoyaltyProgramForm
                 key={formKey}
                 clientId={clientId}
+                mode={mode}
                 program={program}
                 onSaved={onSaved}
                 onClose={close}

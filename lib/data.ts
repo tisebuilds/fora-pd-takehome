@@ -404,6 +404,22 @@ export function updateLoyaltyProgram(
   return true;
 }
 
+/** Appends a loyalty program to the in-memory seed client — used by loyalty program Server Actions. */
+export function addLoyaltyProgram(
+  clientId: string,
+  data: Pick<LoyaltyProgram, "programName" | "accountNumber">,
+): boolean {
+  const client = clients.find((c) => c.id === clientId);
+  if (!client) return false;
+  const id = `loy-${clientId}-${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
+  client.loyaltyPrograms.push({
+    id,
+    programName: data.programName.trim(),
+    accountNumber: data.accountNumber.trim(),
+  });
+  return true;
+}
+
 /** Mutates the in-memory seed client — used by loyalty program Server Actions. */
 export function deleteLoyaltyProgram(clientId: string, programId: string): boolean {
   const client = clients.find((c) => c.id === clientId);

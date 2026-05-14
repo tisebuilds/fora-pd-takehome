@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteLoyaltyProgram, updateLoyaltyProgram } from "@/lib/data";
+import { addLoyaltyProgram, deleteLoyaltyProgram, updateLoyaltyProgram } from "@/lib/data";
 
 export type LoyaltyProgramMutationResult = { ok: true } | { ok: false; error: string };
 
@@ -25,6 +25,24 @@ export async function saveLoyaltyProgramAction(
   const ok = updateLoyaltyProgram(clientId, programId, { programName: name, accountNumber: acct });
   if (!ok) {
     return { ok: false, error: "Could not update loyalty program." };
+  }
+  revalidateClientPaths(clientId);
+  return { ok: true };
+}
+
+export async function addLoyaltyProgramAction(
+  clientId: string,
+  programName: string,
+  accountNumber: string,
+): Promise<LoyaltyProgramMutationResult> {
+  const name = programName.trim();
+  const acct = accountNumber.trim();
+  if (!name || !acct) {
+    return { ok: false, error: "Program name and account number are required." };
+  }
+  const ok = addLoyaltyProgram(clientId, { programName: name, accountNumber: acct });
+  if (!ok) {
+    return { ok: false, error: "Could not add loyalty program." };
   }
   revalidateClientPaths(clientId);
   return { ok: true };

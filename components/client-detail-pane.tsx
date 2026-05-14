@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Copy, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import type { Client, ImportantDate, LoyaltyProgram } from "@/lib/types";
@@ -130,8 +130,19 @@ function Section({
   const contentId = useId();
 
   return (
-    <section className={cn("py-7", className)}>
-      <div className="flex items-start justify-between gap-4 pb-4">
+    <section
+      className={cn(
+        "transition-[padding] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+        open ? "py-7" : "py-2",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-start justify-between gap-4 transition-[padding] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+          open ? "pb-4" : "pb-0",
+        )}
+      >
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -219,6 +230,8 @@ function ImportantDateRow({
 
 const SCROLL_TOP_PADDING_THRESHOLD_PX = 8;
 
+type LoyaltyDialogState = null | { kind: "add" } | { kind: "edit"; program: LoyaltyProgram };
+
 export function ClientDetailPane({ client, onClose }: { client: Client; onClose?: () => void }) {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -229,9 +242,9 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   /** Local edits keyed by client id — avoids syncing `client.notes` via an effect. */
   const [noteEdits, setNoteEdits] = useState<Record<string, string | null>>({});
   const [notesFormKey, setNotesFormKey] = useState(0);
-  const [loyaltyEditProgram, setLoyaltyEditProgram] = useState<LoyaltyProgram | null>(null);
+  const [loyaltyDialog, setLoyaltyDialog] = useState<LoyaltyDialogState>(null);
   const [loyaltyDeleteProgram, setLoyaltyDeleteProgram] = useState<LoyaltyProgram | null>(null);
-  const [loyaltyEditFormKey, setLoyaltyEditFormKey] = useState(0);
+  const [loyaltyDialogFormKey, setLoyaltyDialogFormKey] = useState(0);
 
   const notesSnapshot =
     Object.hasOwn(noteEdits, client.id) ? noteEdits[client.id] : client.notes;
@@ -242,8 +255,13 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   };
 
   const openLoyaltyEdit = (lp: LoyaltyProgram) => {
-    setLoyaltyEditFormKey((k) => k + 1);
-    setLoyaltyEditProgram(lp);
+    setLoyaltyDialogFormKey((k) => k + 1);
+    setLoyaltyDialog({ kind: "edit", program: lp });
+  };
+
+  const openLoyaltyAdd = () => {
+    setLoyaltyDialogFormKey((k) => k + 1);
+    setLoyaltyDialog({ kind: "add" });
   };
 
   const refreshAfterLoyaltyChange = () => {
@@ -351,10 +369,10 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 label="Personal email"
                 value={
                   email ? (
-                    <span className="flex min-w-0 items-center gap-2">
+                    <span className="inline-flex max-w-full min-w-0 items-center gap-2">
                       <a
                         href={`mailto:${email.address}`}
-                        className="min-w-0 flex-1 truncate text-[14px] text-fora-link no-underline hover:opacity-80"
+                        className="min-w-0 shrink truncate text-[14px] text-fora-link no-underline hover:opacity-80"
                       >
                         {email.address}
                       </a>
@@ -505,10 +523,11 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               email ? (
                 <a
                   href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
-                  className={editLinkCls}
-                  aria-label="Email client to add loyalty program details"
+                  className={cn(editLinkCls, "inline-flex items-center gap-1")}
+                  aria-label="Email client to request loyalty program details"
                 >
-                  + Add
+                  <Mail className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                  Request from client
                 </a>
               ) : (
                 <Link
@@ -524,12 +543,14 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
             {client.loyaltyPrograms.length === 0 ? (
               <InlineSectionEmptyBox>
                 {email ? (
-                  <a
-                    href={loyaltyProgramsRequestMailto(email.address, client.firstName)}
-                    className={cn(inlineSectionEmptyActionTriggerClass, "no-underline")}
+                  <button
+                    type="button"
+                    className={inlineSectionEmptyActionTriggerClass}
+                    onClick={openLoyaltyAdd}
+                    aria-label="Add loyalty program"
                   >
-                    <InlineSectionEmptyActionLabel>Email client</InlineSectionEmptyActionLabel>
-                  </a>
+                    <InlineSectionEmptyActionLabel>Add loyalty program</InlineSectionEmptyActionLabel>
+                  </button>
                 ) : (
                   <Link
                     href={`/clients/${client.id}/edit`}
@@ -597,13 +618,14 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               </ul>
             )}
             <EditLoyaltyProgramDialog
-              open={loyaltyEditProgram !== null}
+              open={loyaltyDialog !== null}
               onOpenChange={(next) => {
-                if (!next) setLoyaltyEditProgram(null);
+                if (!next) setLoyaltyDialog(null);
               }}
-              formKey={loyaltyEditFormKey}
+              formKey={loyaltyDialogFormKey}
               clientId={client.id}
-              program={loyaltyEditProgram}
+              mode={loyaltyDialog?.kind === "add" ? "add" : "edit"}
+              program={loyaltyDialog?.kind === "edit" ? loyaltyDialog.program : null}
               onSaved={refreshAfterLoyaltyChange}
             />
             <DeleteLoyaltyProgramDialog
