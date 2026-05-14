@@ -21,7 +21,7 @@ export function StatsStrip({
   return (
     <div
       className={cn(
-        "grid grid-cols-3 gap-4 rounded-[16px] border border-fora-border bg-fora-accent px-5 py-4 text-sm shadow-none ring-0",
+        "grid grid-cols-3 gap-4 rounded-[16px] bg-fora-app px-5 py-4 text-sm shadow-none ring-0",
         className
       )}
     >

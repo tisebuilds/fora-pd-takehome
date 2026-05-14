@@ -25,7 +25,7 @@ export function ChoosePrototypeNavButton({ collapsed }: { collapsed: boolean }) 
       onClick={handleClick}
       title={collapsed ? "Switch layout" : undefined}
       className={cn(
-        "rounded-[4px] text-[13px] font-normal text-orange-700 outline-none transition-opacity duration-200 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+        "rounded-[4px] text-[13px] font-normal text-ink outline-none transition-opacity duration-200 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
         collapsed
           ? "flex w-full justify-center px-0 py-2.5"
           : "inline-flex items-center justify-center gap-3.5 px-2 py-2"

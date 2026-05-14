@@ -136,8 +136,8 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Top bar — list only; hidden on `/clients/:id` (detail shows "← All clients" below) */}
-      {!hasSelection ? (
+      {/* Top bar — always in split layout (including `/clients/:id`); hidden in card list when a client is open. Edit uses `/clients/[id]/edit` outside this shell. */}
+      {!hasSelection || isSplit ? (
         <header className="shrink-0 bg-fora-app px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex min-w-0 flex-row flex-wrap items-baseline gap-2">
@@ -219,7 +219,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
                 href="/clients"
                 className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80 lg:hidden"
               >
-                ← All clients
+                Back
               </Link>
             ) : null}
             <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:rounded-l-none">
@@ -233,14 +233,14 @@ export function ClientsSplitShell({ clients, children }: Props) {
             href="/clients"
             className="shrink-0 text-sm text-fora-link no-underline hover:opacity-80"
           >
-            ← All clients
+            Back
           </Link>
           <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white">
             {children}
           </section>
         </div>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F9F7F2] px-4 py-4 sm:px-6 lg:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F9F9F9] px-4 py-4 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">
             <div className="relative w-full min-w-0">
               <Search
