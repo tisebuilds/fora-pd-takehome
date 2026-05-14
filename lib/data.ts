@@ -84,6 +84,7 @@ const seedClients: Client[] = [
       {
         id: "tg-brad-household",
         name: "Household",
+        paymentCardIds: ["cc-brad-1"],
         travelers: [
           {
             id: "at-brad-1",
@@ -327,7 +328,8 @@ const seedClients: Client[] = [
         nationalNumber: "3055550104",
       },
     ],
-    notes: "Honeymoon registry — Maldives in March.",
+    notes:
+      "Advisor Margot is booking Grandma Susan’s 80th birthday trip. Travelers: Grandpa Andrew; Lisa with Cliff and kids Bob (7) and Alice (11); Matt with Cody, Avery (9), and Spot the dog. Nine people plus Spot. Three hotel reservations under Susan, Lisa, and Matt — each pays their own room.",
     addresses: [
       {
         id: "addr-sm-1",
@@ -341,23 +343,167 @@ const seedClients: Client[] = [
     creditCards: [
       {
         id: "cc-sm-1",
-        brand: "mastercard",
+        brand: "visa",
         cardholderName: "Susan Miller",
-        last4: "4411",
-        expMonth: 4,
+        last4: "0934",
+        expMonth: 6,
         expYearTwoDigit: 28,
         billingZip: "33131",
+        cvvDemo: "123",
+      },
+      {
+        id: "cc-sm-2",
+        brand: "mastercard",
+        cardholderName: "Lisa Miller",
+        last4: "7720",
+        expMonth: 11,
+        expYearTwoDigit: 27,
+        billingZip: "33131",
         cvvDemo: "456",
+      },
+      {
+        id: "cc-sm-3",
+        brand: "amex",
+        cardholderName: "Matt Miller",
+        last4: "3005",
+        expMonth: 2,
+        expYearTwoDigit: 29,
+        billingZip: "33131",
+        cvvDemo: "1234",
       },
     ],
     loyaltyPrograms: [],
     importantDates: [
-      { id: "id-sm-1", label: "Birthday", month: 1, day: 9, year: 1990 },
-      { id: "id-sm-2", label: "Anniversary", month: 3, day: 1, year: 2026 },
+      { id: "id-sm-1", label: "80th birthday", month: 1, day: 9, year: 1946 },
+      { id: "id-sm-2", label: "Anniversary", month: 6, day: 14, year: 1966 },
     ],
+    flight: {
+      dateOfBirth: "1946-01-09",
+      gender: "Female",
+      email: "susan.miller@example.com",
+      phone: "+1 305 555 0104",
+      nationality: "US",
+      passportNumber: "547812001",
+      passportExpiry: "2030-04-20",
+    },
     bookingsCount: 4,
     commissionableValue: 18900,
     commissions: 1320,
+    travelerGroups: [
+      {
+        id: "tg-sm-folio-susan",
+        name: "Hotel — booked as Susan (Grandparents)",
+        includePrimaryClient: true,
+        paymentCardIds: ["cc-sm-1"],
+        travelers: [
+          {
+            id: "at-sm-andrew",
+            firstName: "Andrew",
+            lastName: "Miller",
+            relationship: "Spouse (Grandpa)",
+            flight: {
+              dateOfBirth: "1944-06-12",
+              gender: "Male",
+              nationality: "US",
+              passportNumber: "547812002",
+              passportExpiry: "2029-08-01",
+            },
+          },
+        ],
+      },
+      {
+        id: "tg-sm-folio-lisa",
+        name: "Hotel — booked as Lisa",
+        includePrimaryClient: false,
+        paymentCardIds: ["cc-sm-2"],
+        travelers: [
+          {
+            id: "at-sm-lisa",
+            firstName: "Lisa",
+            lastName: "Miller",
+            relationship: "Child",
+            flight: {
+              dateOfBirth: "1978-03-15",
+              gender: "Female",
+              email: "lisa.miller@example.com",
+              phone: "+1 305 555 0198",
+              nationality: "US",
+            },
+          },
+          {
+            id: "at-sm-cliff",
+            firstName: "Cliff",
+            lastName: "Nguyen",
+            relationship: "Spouse",
+            flight: {
+              dateOfBirth: "1976-11-02",
+              gender: "Male",
+              nationality: "US",
+            },
+          },
+          {
+            id: "at-sm-bob",
+            firstName: "Bob",
+            lastName: "Nguyen",
+            relationship: "Child",
+            flight: { dateOfBirth: "2019-07-22", gender: "Male", nationality: "US" },
+          },
+          {
+            id: "at-sm-alice",
+            firstName: "Alice",
+            lastName: "Nguyen",
+            relationship: "Child",
+            flight: { dateOfBirth: "2015-09-03", gender: "Female", nationality: "US" },
+          },
+        ],
+      },
+      {
+        id: "tg-sm-folio-matt",
+        name: "Hotel — booked as Matt",
+        includePrimaryClient: false,
+        paymentCardIds: ["cc-sm-3"],
+        travelers: [
+          {
+            id: "at-sm-matt",
+            firstName: "Matt",
+            lastName: "Miller",
+            relationship: "Child",
+            flight: {
+              dateOfBirth: "1981-12-08",
+              gender: "Male",
+              email: "matt.miller@example.com",
+              nationality: "US",
+            },
+          },
+          {
+            id: "at-sm-cody",
+            firstName: "Cody",
+            lastName: "Ruiz",
+            relationship: "Spouse",
+            flight: { dateOfBirth: "1983-05-30", gender: "Non-binary", nationality: "US" },
+          },
+          {
+            id: "at-sm-avery",
+            firstName: "Avery",
+            lastName: "Miller",
+            relationship: "Child",
+            flight: { dateOfBirth: "2017-02-14", gender: "Female", nationality: "US" },
+          },
+          {
+            id: "at-sm-spot",
+            companionKind: "pet",
+            firstName: "Spot",
+            lastName: "Dog",
+          },
+        ],
+      },
+    ],
+    nameEdit: {
+      prefix: "",
+      suffix: "",
+      preferredName: "Grandma Susan",
+      pronouns: "",
+    },
   },
   {
     id: "jordan-reeves",
@@ -458,8 +604,32 @@ const SCALE_DEMO_CITIES = [
   "Sydney",
 ] as const;
 
+/** Fictional but human-looking inbox for synthetic scale clients (deduped). */
+function scaleDemoEmailAddress(firstName: string, lastName: string, i: number, used: Set<string>): string {
+  const segment = (raw: string) => {
+    const t = raw
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "");
+    return t.length > 0 ? t : "traveler";
+  };
+  const domains = ["gmail.com", "icloud.com", "outlook.com", "me.com", "yahoo.com"] as const;
+  const domain = domains[i % domains.length]!;
+  const baseLocal = `${segment(firstName)}.${segment(lastName)}`;
+  let n = 0;
+  let candidate = `${baseLocal}@${domain}`;
+  while (used.has(candidate)) {
+    n += 1;
+    candidate = `${baseLocal}${n}@${domain}`;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
 /** Lightweight profiles so the clients list stresses layout at scale (fictional data). */
 function buildScaleDemoClients(count: number): Client[] {
+  const usedEmails = new Set<string>();
   return Array.from({ length: count }, (_, i) => {
     const first = SCALE_DEMO_FIRST[i % SCALE_DEMO_FIRST.length]!;
     const last = SCALE_DEMO_LAST[(i * 7) % SCALE_DEMO_LAST.length]!;
@@ -474,7 +644,7 @@ function buildScaleDemoClients(count: number): Client[] {
       firstName: first,
       lastName: last,
       location: city,
-      emails: [{ type: "personal" as const, address: `${id.replace(/-/g, ".")}@example.com` }],
+      emails: [{ type: "personal" as const, address: scaleDemoEmailAddress(first, last, i, usedEmails) }],
       phones: [
         {
           type: "mobile" as const,

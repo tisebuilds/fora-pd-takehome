@@ -4,20 +4,17 @@ import { useMemo, useState } from "react";
 import { MoreHorizontal, Pencil, Search, Trash2, UserRound } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
-import type { AssociatedTraveler, TravelerGroup } from "@/lib/types";
+import type { AssociatedTraveler, ClientAddress, CreditCard, TravelerGroup } from "@/lib/types";
 import {
   companionFlightBookingCardRows,
   type FlightBookingCardRow,
 } from "@/lib/format";
+import { CreditCardRow } from "@/components/credit-card-row";
 import { DeleteAssociatedTravelerDialog } from "@/components/delete-associated-traveler-dialog";
 import { DeleteTravelerGroupDialog } from "@/components/delete-traveler-group-dialog";
 import { DetailSection } from "@/components/detail-section";
 import { EditAssociatedTravelerDialog } from "@/components/edit-associated-traveler-dialog";
-import {
-  InlineSectionEmptyActionLabel,
-  InlineSectionEmptyBox,
-  inlineSectionEmptyActionTriggerClass,
-} from "@/components/inline-section-empty-box";
+import { InlineSectionEmptyBox } from "@/components/inline-section-empty-box";
 import { TravelerGroupNameDialog } from "@/components/traveler-group-name-dialog";
 import {
   addTravelerGroupAction,
@@ -130,10 +127,25 @@ function travelerSearchText(t: AssociatedTraveler): string {
     .join(" ");
 }
 
+function paymentCardsForGroup(group: TravelerGroup, clientCreditCards: CreditCard[]): CreditCard[] {
+  const ids = group.paymentCardIds;
+  if (!ids?.length) return [];
+  const byId = new Map(clientCreditCards.map((c) => [c.id, c]));
+  return ids.map((id) => byId.get(id)).filter((c): c is CreditCard => c !== undefined);
+}
+
+function paymentCardSearchBlob(cards: CreditCard[]): string {
+  return cards
+    .flatMap((c) => [c.cardholderName, c.last4, c.brand])
+    .filter((s) => s.length > 0)
+    .join(" ");
+}
+
 function groupMatchesSearch(
   group: TravelerGroup,
   primaryClientName: string,
   primaryBookingRows: FlightBookingCardRow[],
+  clientCreditCards: CreditCard[],
   needle: string,
 ): boolean {
   const q = needle.trim().toLowerCase();
@@ -142,7 +154,9 @@ function groupMatchesSearch(
   const primaryBlob = travelerGroupIncludesPrimary(group)
     ? [primaryClientName, bookingBlob].join(" ")
     : "";
-  const hay = [group.name, primaryBlob, ...group.travelers.map(travelerSearchText)]
+  const houseCards = paymentCardsForGroup(group, clientCreditCards);
+  const cardBlob = paymentCardSearchBlob(houseCards);
+  const hay = [group.name, primaryBlob, cardBlob, ...group.travelers.map(travelerSearchText)]
     .filter((s) => s.length > 0)
     .join(" ")
     .toLowerCase();
@@ -166,16 +180,22 @@ export function AssociatedTravelersSection({
   primaryClientName,
   primaryBookingRows,
   onOpenPrimaryClientProfile,
+  clientCreditCards,
+  clientBillingAddress,
 }: {
   clientId: string;
   groups: TravelerGroup[];
   onRefresh: () => void;
   /** When included in a group, shown first with booking-ready fields from the Details tab. */
   primaryClientName: string;
-  /** DOB, contact, and airline loyalty from the primary client profile (Details tab). */
+  /** Booking-ready rows for the primary (profile + `client.flight` + airline loyalty programs). */
   primaryBookingRows: FlightBookingCardRow[];
   /** Switches to the client Details tab (profile, cards, contact, etc.). */
   onOpenPrimaryClientProfile: () => void;
+  /** Cards on the client profile used to resolve `TravelerGroup.paymentCardIds` for this household. */
+  clientCreditCards: CreditCard[];
+  /** Primary billing address for household card rows (same convention as the Details tab). */
+  clientBillingAddress: ClientAddress | null;
 }) {
   const [travelerDialog, setTravelerDialog] = useState<TravelerDialogState>(null);
   const [travelerFormKey, setTravelerFormKey] = useState(0);
@@ -194,8 +214,10 @@ export function AssociatedTravelersSection({
 
   const filteredGroups = useMemo(
     () =>
-      groups.filter((g) => groupMatchesSearch(g, primaryClientName, primaryBookingRows, groupSearchQuery)),
-    [groups, primaryBookingRows, primaryClientName, groupSearchQuery],
+      groups.filter((g) =>
+        groupMatchesSearch(g, primaryClientName, primaryBookingRows, clientCreditCards, groupSearchQuery),
+      ),
+    [groups, primaryBookingRows, primaryClientName, clientCreditCards, groupSearchQuery],
   );
 
   const openAddTraveler = (groupId: string) => {
@@ -252,68 +274,118 @@ export function AssociatedTravelersSection({
     onRefresh();
   };
 
-  return (
-    <div className={groups.length === 0 ? "mt-4" : "mt-0"}>
-      {groups.length === 0 ? (
-        <DetailSection
-          title="Households"
-          action={
-            <button type="button" onClick={openAddGroup} className={editLinkCls} aria-label="Add group">
-              + Add
-            </button>
-          }
-        >
-          <InlineSectionEmptyBox>
-            <button
-              type="button"
-              className={inlineSectionEmptyActionTriggerClass}
-              onClick={() => void handleEmptyStateAddTraveler()}
-              disabled={emptyAddTravelerPending}
-              aria-label="Add companion"
+  const groupOverflowMenu = (group: TravelerGroup) => (
+    <Menu.Root>
+      <Menu.Trigger
+        type="button"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-fora-muted outline-none transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app"
+        aria-label={`Group options for ${group.name}`}
+      >
+        <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner sideOffset={6} align="end">
+          <Menu.Popup className="z-50 min-w-[220px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+            <Menu.Item className={menuItemClass} onClick={() => openRenameGroup(group)}>
+              <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+              Rename group
+            </Menu.Item>
+            <Menu.Item className={menuItemClass} onClick={() => void togglePrimaryInGroup(group)}>
+              <UserRound className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+              {travelerGroupIncludesPrimary(group)
+                ? "Hide primary from group"
+                : "Show primary in group"}
+            </Menu.Item>
+            <Menu.Item
+              className={cn(menuItemClass, "text-fora-danger")}
+              onClick={() => {
+                if (group.travelers.length > 0) {
+                  toast.error("Remove travelers from this group before deleting it.");
+                  return;
+                }
+                setDeleteGroup({ groupId: group.id, groupName: group.name });
+              }}
             >
-              <InlineSectionEmptyActionLabel>Add companion</InlineSectionEmptyActionLabel>
-            </button>
-          </InlineSectionEmptyBox>
-          <p className="mt-3 text-[13px] leading-snug text-fora-muted">
-            Create a household, then add people or pets with booking details.
+              <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+              Delete group
+            </Menu.Item>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
+
+  const companionToolbar = (
+    <div className="-mx-6 mb-3 rounded-none bg-fora-app py-2.5 lg:-mx-10">
+      <div className="flex flex-col gap-2 px-6 sm:flex-row sm:items-center sm:gap-3 lg:px-10">
+        <div className="relative min-w-0 flex-1">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 size-[16px] -translate-y-1/2 text-fora-muted"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <Input
+            value={groupSearchQuery}
+            onChange={(e) => setGroupSearchQuery(e.target.value)}
+            placeholder="Search groups, travelers, booking fields, or household cards…"
+            aria-label="Search companion groups and travelers"
+            className="h-10 w-full rounded-lg border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={openAddGroup}
+          className={cn(
+            editLinkCls,
+            "inline-flex shrink-0 items-center self-start rounded-lg border border-fora-border bg-white px-2.5 py-1.5 transition-colors hover:bg-fora-app sm:self-auto",
+          )}
+        >
+          + Add group
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mt-0">
+      {companionToolbar}
+      {groups.length === 0 ? (
+        groupSearchQuery.trim() ? (
+          <p className="py-6 text-center text-[14px] text-fora-muted">
+            No groups or travelers match your search.
           </p>
-        </DetailSection>
-      ) : (
-        <>
-          <div className="-mx-6 mb-3 bg-fora-app py-2.5 lg:-mx-10">
-            <div className="flex flex-col gap-2 px-6 sm:flex-row sm:items-center sm:gap-3 lg:px-10">
-              <div className="relative min-w-0 flex-1">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3 size-[16px] -translate-y-1/2 text-fora-muted"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                <Input
-                  value={groupSearchQuery}
-                  onChange={(e) => setGroupSearchQuery(e.target.value)}
-                  placeholder="Search groups, names, relationships, or booking fields…"
-                  aria-label="Search companion groups and travelers"
-                  className="h-10 w-full rounded-lg border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
-                />
-              </div>
+        ) : (
+          <DetailSection
+            title="Households"
+            action={
               <button
                 type="button"
-                onClick={openAddGroup}
-                className={cn(
-                  editLinkCls,
-                  "inline-flex shrink-0 items-center self-start rounded-lg border border-fora-border bg-white px-2.5 py-1.5 transition-colors hover:bg-fora-app sm:self-auto",
-                )}
+                onClick={() => void handleEmptyStateAddTraveler()}
+                disabled={emptyAddTravelerPending}
+                className={editLinkCls}
+                aria-label="Add companion"
               >
-                + Add group
+                + Add companion
               </button>
-            </div>
-          </div>
+            }
+          >
+            <InlineSectionEmptyBox>
+              <p className="px-4 py-3.5 text-[14px] leading-snug text-fora-muted">
+                Add people or pets with their booking details
+              </p>
+            </InlineSectionEmptyBox>
+          </DetailSection>
+        )
+      ) : (
+        <>
           {filteredGroups.length === 0 ? (
             <p className="py-6 text-center text-[14px] text-fora-muted">
               No groups or travelers match your search.
             </p>
           ) : (
-            filteredGroups.map((group) => (
+            filteredGroups.map((group) => {
+              const housePaymentCards = paymentCardsForGroup(group, clientCreditCards);
+              return (
             <DetailSection
               key={group.id}
               title={groupSectionTitle(group)}
@@ -327,50 +399,7 @@ export function AssociatedTravelersSection({
                   >
                     + Add companion
                   </button>
-                  <Menu.Root>
-                    <Menu.Trigger
-                      type="button"
-                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-fora-muted outline-none transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app"
-                      aria-label={`Group options for ${group.name}`}
-                    >
-                      <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
-                    </Menu.Trigger>
-                    <Menu.Portal>
-                      <Menu.Positioner sideOffset={6} align="end">
-                        <Menu.Popup className="z-50 min-w-[180px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
-                          <Menu.Item
-                            className={menuItemClass}
-                            onClick={() => openRenameGroup(group)}
-                          >
-                            <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                            Rename group
-                          </Menu.Item>
-                          <Menu.Item
-                            className={menuItemClass}
-                            onClick={() => void togglePrimaryInGroup(group)}
-                          >
-                            <UserRound className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                            {travelerGroupIncludesPrimary(group)
-                              ? "Hide primary from group"
-                              : "Show primary in group"}
-                          </Menu.Item>
-                          <Menu.Item
-                            className={cn(menuItemClass, "text-fora-danger")}
-                            onClick={() => {
-                              if (group.travelers.length > 0) {
-                                toast.error("Remove travelers from this group before deleting it.");
-                                return;
-                              }
-                              setDeleteGroup({ groupId: group.id, groupName: group.name });
-                            }}
-                          >
-                            <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                            Delete group
-                          </Menu.Item>
-                        </Menu.Popup>
-                      </Menu.Positioner>
-                    </Menu.Portal>
-                  </Menu.Root>
+                  {groupOverflowMenu(group)}
                 </div>
               }
             >
@@ -393,7 +422,7 @@ export function AssociatedTravelersSection({
                     </p>
                     <FlightBookingCardDetails
                       rows={primaryBookingRows}
-                      emptyHint="Add birthday, contact, and airline loyalty on the Details tab to show booking-ready fields here."
+                      emptyHint="Add a birthday on Details, contact and airline loyalty on the profile, or traveler IDs (passport, gender, KTN) on the client record to show fields here."
                     />
                   </div>
                   <Menu.Root>
@@ -499,8 +528,27 @@ export function AssociatedTravelersSection({
                   })
                   : null}
               </ul>
+              {housePaymentCards.length > 0 ? (
+                <div className="mt-3">
+                  <div className="space-y-2">
+                    {housePaymentCards.map((c, i) => (
+                      <CreditCardRow
+                        key={c.id}
+                        card={c}
+                        variant="detail"
+                        detailTone="muted"
+                        billingAddress={clientBillingAddress}
+                        detailSubcaption={
+                          i === 0 ? "Payment for this household" : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </DetailSection>
-            ))
+              );
+            })
           )}
         </>
       )}

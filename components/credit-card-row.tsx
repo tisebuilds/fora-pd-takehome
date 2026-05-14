@@ -1,7 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Copy, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -99,6 +107,13 @@ const cardActionsMenuItemClass =
 type Props = {
   card: CreditCard;
   variant?: "list" | "detail";
+  /**
+   * When `variant` is `detail`, `"muted"` reads as secondary context (e.g. household FYI)
+   * with lighter chrome; `"default"` is the prominent profile card treatment.
+   */
+  detailTone?: "default" | "muted";
+  /** Shown under the “Brand ending in …” line in `detail` layout (e.g. household context). */
+  detailSubcaption?: ReactNode;
   className?: string;
   /**
    * Table-style clients list: inline “card on file” panel with five-column copy fields.
@@ -118,6 +133,7 @@ type Props = {
    * When `embeddedListWithCopy`, show Edit and Hide in the header and Remove below the copy hint.
    * Set `false` for table-expanded panels where the parent owns section chrome. @default true
    */
+  showEmbedChromeActions?: boolean;
   /**
    * When this number increases, full card details (PAN, etc.) expand — used by the profile header
    * “jump to credit cards” control so rows are not left in the default collapsed state.
@@ -315,6 +331,8 @@ function CreditCardFiveColumnFields({
 export function CreditCardRow({
   card,
   variant = "list",
+  detailTone = "default",
+  detailSubcaption,
   className,
   embeddedListWithCopy,
   billingAddress,
@@ -326,6 +344,7 @@ export function CreditCardRow({
   const embed = Boolean(embeddedListWithCopy);
   const [revealed, setRevealed] = useState(false);
   const isDetail = variant === "detail";
+  const mutedDetail = isDetail && detailTone === "muted";
   const detailsId = useId();
   const groupLabel = `${brandLabel(card.brand)} ending in ${card.last4}`;
   const expiry = cardExpiry(card.expMonth, card.expYearTwoDigit);
@@ -457,18 +476,35 @@ export function CreditCardRow({
       aria-label={groupLabel}
       className={cn(
         profileLayout
-          ? "rounded-[14px] border border-[#E0E0E0] bg-white px-5 py-4"
+          ? mutedDetail
+            ? "rounded-lg bg-fora-app/60 px-3 py-2.5 sm:px-4 sm:py-3"
+            : "rounded-[14px] border border-[#E0E0E0] bg-white px-5 py-4"
           : "rounded-[10px] border border-fora-border bg-white px-3 py-3",
         isDetail && !profileLayout && "px-4 py-4",
         className
       )}
     >
       {profileLayout ? (
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+        <div
+          className={cn(
+            "flex justify-between gap-3 sm:gap-4",
+            detailSubcaption ? "items-start" : "items-center",
+          )}
+        >
+          <div
+            className={cn(
+              "flex min-w-0 flex-1",
+              detailSubcaption ? "items-start" : "items-center",
+              mutedDetail ? "gap-2.5 sm:gap-3" : "gap-3 sm:gap-4",
+            )}
+          >
             <span
               className={cn(
-                "inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-[#E0E0E0] bg-white",
+                "inline-flex shrink-0 items-center justify-center rounded-lg bg-white",
+                detailSubcaption && "mt-0.5",
+                mutedDetail
+                  ? "size-9 border border-fora-border/70"
+                  : "size-11 border border-[#E0E0E0]",
                 card.brand !== "visa" && "text-[11px] font-bold tracking-wide text-fora-link"
               )}
               aria-hidden
@@ -480,7 +516,10 @@ export function CreditCardRow({
                   width={40}
                   height={16}
                   unoptimized
-                  className="h-[18px] w-auto max-w-[48px] object-contain object-center"
+                  className={cn(
+                    "w-auto object-contain object-center",
+                    mutedDetail ? "h-[15px] max-w-[40px]" : "h-[18px] max-w-[48px]"
+                  )}
                   draggable={false}
                 />
               ) : (
@@ -488,15 +527,31 @@ export function CreditCardRow({
               )}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[16px] font-bold leading-snug text-[#111827]">
+              <p
+                className={cn(
+                  "truncate leading-snug",
+                  mutedDetail
+                    ? "text-[14px] font-medium text-fora-navy"
+                    : "text-[16px] font-bold text-[#111827]"
+                )}
+              >
                 {brandLabel(card.brand)} ending in {card.last4}
               </p>
+              {detailSubcaption ? (
+                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-fora-muted">
+                  {detailSubcaption}
+                </p>
+              ) : null}
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className={cn("flex shrink-0 items-center gap-1.5 sm:gap-2", detailSubcaption && "pt-0.5")}>
             <button
               type="button"
-              className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-[#E0E0E0] bg-white px-3.5 text-[14px] font-medium text-[#111827] outline-none transition-colors hover:bg-[#FAFAFA] focus-visible:ring-2 focus-visible:ring-[#E0E0E0]/80"
+              className={
+                mutedDetail
+                  ? "text-[13px] text-fora-link no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-fora-navy/20"
+                  : "inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-[#E0E0E0] bg-white px-3.5 text-[14px] font-medium text-[#111827] outline-none transition-colors hover:bg-[#FAFAFA] focus-visible:ring-2 focus-visible:ring-[#E0E0E0]/80"
+              }
               aria-expanded={revealed}
               aria-controls={detailsId}
               aria-label={revealed ? "Hide full card details" : "Reveal full card details"}
@@ -507,10 +562,15 @@ export function CreditCardRow({
             <Menu.Root>
               <Menu.Trigger
                 type="button"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#6B7280] outline-none transition-colors hover:bg-[#F3F4F6] hover:text-[#374151] focus-visible:ring-2 focus-visible:ring-[#E0E0E0]/80 aria-expanded:bg-[#F3F4F6]"
+                className={cn(
+                  "inline-flex size-9 shrink-0 items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 aria-expanded:bg-fora-app",
+                  mutedDetail
+                    ? "text-fora-muted hover:bg-fora-app hover:text-fora-navy focus-visible:ring-fora-navy/20"
+                    : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#374151] focus-visible:ring-[#E0E0E0]/80 aria-expanded:bg-[#F3F4F6]"
+                )}
                 aria-label="More card options"
               >
-                <MoreHorizontal className="size-5" strokeWidth={2} aria-hidden />
+                <MoreHorizontal className={mutedDetail ? "size-[18px]" : "size-5"} strokeWidth={2} aria-hidden />
               </Menu.Trigger>
               <Menu.Portal>
                 <Menu.Positioner sideOffset={6} align="end">
@@ -576,7 +636,7 @@ export function CreditCardRow({
           <div
             className={cn(
               "pt-3",
-              profileLayout ? "mt-4" : "mt-3 border-t border-fora-border"
+              profileLayout ? (mutedDetail ? "mt-3" : "mt-4") : "mt-3 border-t border-fora-border"
             )}
           >
             {profileLayout ? (

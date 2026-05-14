@@ -97,6 +97,11 @@ export interface TravelerGroup {
    * `false` = companion-only group (e.g. pets, colleagues) without duplicating the primary row.
    */
   includePrimaryClient?: boolean;
+  /**
+   * `CreditCard.id` values on the same client profile — shown under this household on the Companions tab
+   * (e.g. hotel folio / room payment).
+   */
+  paymentCardIds?: string[];
 }
 
 export interface Client {

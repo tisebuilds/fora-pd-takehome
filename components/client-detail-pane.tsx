@@ -475,7 +475,10 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           >
             <div className="divide-y divide-[#EEEEEE]">
               <ImportantDateRow label="Birthday" emoji="🎂" date={birthday} />
-              <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />
+              {anniversary &&
+              formatImportantDate(anniversary.month, anniversary.day, anniversary.year) ? (
+                <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />
+              ) : null}
             </div>
             <AddImportantDateDialog open={addImportantDateOpen} onOpenChange={setAddImportantDateOpen} />
           </DetailSection>
@@ -499,14 +502,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               </div>
             ) : (
               <p className="text-[14px] text-fora-muted">
-                Add your client&apos;s travel preferences…{" "}
-                <button
-                  type="button"
-                  onClick={openNotesModal}
-                  className="cursor-pointer bg-transparent p-0 text-fora-link no-underline hover:opacity-80"
-                >
-                  Add notes
-                </button>
+                <span className="text-fora-link">Add</span> your client&apos;s travel preferences…
               </p>
             )}
             <EditNotesDialog
@@ -716,6 +712,8 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               primaryClientName={clientDisplayName(client)}
               primaryBookingRows={primaryClientFlightBookingCardRows(client)}
               onOpenPrimaryClientProfile={() => setDetailTab("details")}
+              clientCreditCards={client.creditCards}
+              clientBillingAddress={client.addresses[0] ?? null}
             />
           </div>
         )}
