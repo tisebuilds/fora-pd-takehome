@@ -103,14 +103,18 @@ export async function addTravelerToGroupAction(
   firstName: string,
   lastName: string,
   relationship: string,
+  petNotes: string,
   flight: TravelerFlightBookingInfo,
+  linkedClientId: string | null | undefined,
 ): Promise<TravelerMutationResult> {
   const result = addTravelerToGroup(clientId, groupId, {
     companionKind,
     firstName,
     lastName,
     relationship,
+    petNotes,
     flight: normalizeFlight(flight),
+    linkedClientId: linkedClientId?.trim() || null,
   });
   if (!result.ok) return result;
   revalidateClientPaths(clientId);
@@ -125,18 +129,20 @@ export async function saveTravelerInGroupAction(
   firstName: string,
   lastName: string,
   relationship: string,
+  petNotes: string,
   flight: TravelerFlightBookingInfo,
+  linkedClientId: string | null | undefined,
 ): Promise<TravelerMutationResult> {
-  const ok = updateTravelerInGroup(clientId, groupId, travelerId, {
+  const result = updateTravelerInGroup(clientId, groupId, travelerId, {
     companionKind,
     firstName,
     lastName,
     relationship,
+    petNotes,
     flight: normalizeFlight(flight),
+    linkedClientId: linkedClientId?.trim() || null,
   });
-  if (!ok) {
-    return { ok: false, error: "Could not update traveler." };
-  }
+  if (!result.ok) return result;
   revalidateClientPaths(clientId);
   return { ok: true };
 }

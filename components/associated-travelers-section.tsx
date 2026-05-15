@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { CreditCard as CreditCardIcon, MoreHorizontal, Pencil, Search, Trash2, UserRound } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
-import type { AssociatedTraveler, ClientAddress, CreditCard, TravelerGroup } from "@/lib/types";
+import type { AssociatedTraveler, ClientAddress, CompanionLinkableClient, CreditCard, TravelerGroup } from "@/lib/types";
 import {
   companionFlightBookingCardRows,
   type FlightBookingCardRow,
@@ -124,6 +125,7 @@ function travelerSearchText(t: AssociatedTraveler): string {
     t.firstName,
     t.lastName,
     t.relationship,
+    t.petNotes,
     flightSearchText(t.flight),
   ]
     .filter((s): s is string => typeof s === "string" && s.trim() !== "")
@@ -185,6 +187,7 @@ export function AssociatedTravelersSection({
   onOpenPrimaryClientProfile,
   clientCreditCards,
   clientBillingAddress,
+  companionLinkableClients,
 }: {
   clientId: string;
   groups: TravelerGroup[];
@@ -199,6 +202,8 @@ export function AssociatedTravelersSection({
   clientCreditCards: CreditCard[];
   /** Primary billing address for household card rows (same convention as the Details tab). */
   clientBillingAddress: ClientAddress | null;
+  /** Other client profiles for optional linking when adding or editing a person companion. */
+  companionLinkableClients: CompanionLinkableClient[];
 }) {
   const [travelerDialog, setTravelerDialog] = useState<TravelerDialogState>(null);
   const [travelerFormKey, setTravelerFormKey] = useState(0);
@@ -220,6 +225,14 @@ export function AssociatedTravelersSection({
   const [linkPaymentFormKey, setLinkPaymentFormKey] = useState(0);
   const [emptyAddTravelerPending, setEmptyAddTravelerPending] = useState(false);
   const [groupSearchQuery, setGroupSearchQuery] = useState("");
+
+  const linkedProfileLabelById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of companionLinkableClients) {
+      m.set(c.id, c.displayName);
+    }
+    return m;
+  }, [companionLinkableClients]);
 
   const filteredGroups = useMemo(
     () =>
@@ -496,6 +509,9 @@ export function AssociatedTravelersSection({
                                 {t.lastName?.trim() ? (
                                   <span className={ROLE_BADGE_CLASS}>{t.lastName.trim()}</span>
                                 ) : null}
+                                {t.relationship?.trim() ? (
+                                  <span className={ROLE_BADGE_CLASS}>{t.relationship.trim()}</span>
+                                ) : null}
                               </>
                             ) : (
                               <>
@@ -506,6 +522,17 @@ export function AssociatedTravelersSection({
                               </>
                             )}
                           </p>
+                          {t.linkedClientId && t.companionKind !== "pet" ? (
+                            <p className="mt-1 text-[11px] leading-snug text-fora-muted">
+                              Linked profile:{" "}
+                              <Link
+                                href={`/clients/${t.linkedClientId}`}
+                                className="text-fora-link underline-offset-2 hover:underline"
+                              >
+                                {linkedProfileLabelById.get(t.linkedClientId) ?? "View profile"}
+                              </Link>
+                            </p>
+                          ) : null}
                           <FlightBookingCardDetails
                             rows={bookingRows}
                             emptyHint="No traveler IDs on file — use “Edit for booking” to add DOB, gender, passport, contact, and Known Traveler Number."
@@ -586,6 +613,7 @@ export function AssociatedTravelersSection({
         groupId={travelerDialog?.groupId ?? ""}
         mode={travelerDialog?.mode === "edit" ? "edit" : "add"}
         traveler={travelerDialog?.mode === "edit" ? travelerDialog.traveler : null}
+        companionLinkableClients={companionLinkableClients}
         onSaved={onRefresh}
       />
 

@@ -71,6 +71,16 @@ export interface TravelerFlightBookingInfo {
   knownTravelerNumber?: string;
 }
 
+/** Directory row for linking a person companion to another client profile (picker + prefill). */
+export interface CompanionLinkableClient {
+  id: string;
+  displayName: string;
+  location: string;
+  firstName: string;
+  lastName: string;
+  flight: TravelerFlightBookingInfo;
+}
+
 /** Household or trip companions linked to a client profile. */
 export type CompanionKind = "person" | "pet";
 
@@ -84,7 +94,14 @@ export interface AssociatedTraveler {
   firstName: string;
   lastName: string;
   relationship?: string;
+  /** Care / travel notes for pets (carrier size, diet, etc.). Omit for human companions. */
+  petNotes?: string;
   flight?: TravelerFlightBookingInfo;
+  /**
+   * When set on a human companion, points at another saved client profile in this workspace
+   * (e.g. household member with their own file). Not used for pets.
+   */
+  linkedClientId?: string;
 }
 
 /** Named set of travelers (e.g. family vs work trip) for booking together. */
@@ -104,6 +121,25 @@ export interface TravelerGroup {
   paymentCardIds?: string[];
 }
 
+/** Timeline entry on the client Notes tab (written, uploaded audio, or in-browser meeting recording). */
+export type ClientProfileNoteKind = "text" | "audio_upload" | "audio_meeting";
+
+export interface ClientProfileNote {
+  id: string;
+  /** ISO 8601 timestamp */
+  createdAt: string;
+  kind: ClientProfileNoteKind;
+  /** Written note body */
+  text?: string;
+  /** Original filename for uploaded audio */
+  audioFileName?: string;
+  /**
+   * In-memory playback URL from `URL.createObjectURL` — not persisted; cleared on refresh.
+   * Seeded server data never includes this field.
+   */
+  audioObjectUrl?: string;
+}
+
 export interface Client {
   id: string;
   firstName: string;
@@ -113,8 +149,10 @@ export interface Client {
   location: string;
   emails: ClientEmail[];
   phones: ClientPhone[];
-  /** null = empty notes state (show add-notes affordance) */
+  /** null = empty — legacy single blurb; shown as one timeline card when `profileNotes` is absent */
   notes: string | null;
+  /** Optional seeded timeline; when present, replaces legacy `notes` for the Notes tab */
+  profileNotes?: ClientProfileNote[];
   addresses: ClientAddress[];
   creditCards: CreditCard[];
   loyaltyPrograms: LoyaltyProgram[];

@@ -4,11 +4,14 @@ import type {
   ClientAddress,
   ClientEmail,
   ClientPhone,
+  CompanionKind,
+  CompanionLinkableClient,
   LoyaltyProgram,
   PhoneType,
   TravelerFlightBookingInfo,
   TravelerGroup,
 } from "@/lib/types";
+import { clientDisplayName, formatImportantDate, formatPhoneDisplay } from "@/lib/format";
 
 /**
  * Hardcoded seed data for the Porta scaffold — all names and numbers are fictional.
@@ -29,12 +32,26 @@ const seedClients: Client[] = [
         nationalNumber: "2124579321",
       },
     ],
-    notes: "Son has a gluten allergy",
+    notes: null,
+    profileNotes: [
+      {
+        id: "pn-brad-2",
+        kind: "text",
+        createdAt: "2025-11-02T15:30:00.000Z",
+        text: "Kickoff call for Q1 Hawaii trip — prefers direct flights and morning departures when possible.",
+      },
+      {
+        id: "pn-brad-1",
+        kind: "text",
+        createdAt: "2025-10-18T09:12:00.000Z",
+        text: "Son has a gluten allergy — double-check restaurant reservations.",
+      },
+    ],
     addresses: [
       {
         id: "addr-brad-1",
         label: "",
-        country: "",
+        country: "US",
         line1: "407 Park Ave S",
         line2: "Apt 6C",
         city: "New York",
@@ -91,6 +108,7 @@ const seedClients: Client[] = [
             firstName: "Nicole",
             lastName: "Andrews",
             relationship: "Spouse",
+            linkedClientId: "nicole-andrews",
             flight: {
               dateOfBirth: "1986-04-18",
               gender: "Female",
@@ -494,6 +512,8 @@ const seedClients: Client[] = [
             companionKind: "pet",
             firstName: "Spot",
             lastName: "Dog",
+            relationship: "Family dog",
+            petNotes: "Crate trained; bring water bowl.",
           },
         ],
       },
@@ -687,6 +707,60 @@ export const clients: Client[] = [...seedClients, ...buildScaleDemoClients(95)];
 
 export function getClientById(id: string): Client | undefined {
   return clients.find((c) => c.id === id);
+}
+
+function companionFlightPrefillFromClient(client: Client): TravelerFlightBookingInfo {
+  const f = client.flight;
+  const birthday = client.importantDates.find((d) => /^birthday$/i.test(d.label.trim()));
+  const dobFromImportant =
+    birthday != null ? formatImportantDate(birthday.month, birthday.day, birthday.year) : null;
+  const emailFromProfile = (client.emails.find((e) => e.type === "personal") ?? client.emails[0])?.address?.trim();
+  const phone = client.phones.find((p) => p.type === "mobile") ?? client.phones[0];
+  const phoneStr = phone ? formatPhoneDisplay(phone)?.trim() ?? "" : "";
+
+  return {
+    dateOfBirth: (f?.dateOfBirth?.trim() || dobFromImportant || "").trim(),
+    gender: f?.gender?.trim() ?? "",
+    email: (f?.email?.trim() || emailFromProfile || "").trim(),
+    phone: (f?.phone?.trim() || phoneStr || "").trim(),
+    passportNumber: f?.passportNumber?.trim() ?? "",
+    passportExpiry: f?.passportExpiry?.trim() ?? "",
+    nationality: f?.nationality?.trim() ?? "",
+    knownTravelerNumber: f?.knownTravelerNumber?.trim() ?? "",
+  };
+}
+
+/** Other client profiles that can be linked when adding a person companion (excludes the host). */
+export function getCompanionLinkableClients(excludeClientId: string): CompanionLinkableClient[] {
+  return clients
+    .filter((c) => c.id !== excludeClientId)
+    .map((c) => ({
+      id: c.id,
+      displayName: clientDisplayName(c),
+      location: c.location,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      flight: companionFlightPrefillFromClient(c),
+    }));
+}
+
+function resolveTravelerLinkedClientId(
+  hostClientId: string,
+  companionKind: CompanionKind | undefined,
+  raw: string | null | undefined,
+): { ok: true; linkedClientId?: string } | { ok: false; error: string } {
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (!trimmed) return { ok: true, linkedClientId: undefined };
+  if (companionKind === "pet") {
+    return { ok: false, error: "Pets cannot be linked to a client profile." };
+  }
+  if (trimmed === hostClientId) {
+    return { ok: false, error: "A companion cannot be linked to this same client profile." };
+  }
+  if (!clients.some((c) => c.id === trimmed)) {
+    return { ok: false, error: "That client profile could not be found." };
+  }
+  return { ok: true, linkedClientId: trimmed };
 }
 
 export type PersonalInfoSaveInput = {
@@ -920,9 +994,11 @@ export function deleteTravelerGroup(
 
 export type TravelerUpsertPayload = Pick<
   AssociatedTraveler,
-  "firstName" | "lastName" | "relationship" | "companionKind"
+  "firstName" | "lastName" | "relationship" | "companionKind" | "petNotes"
 > & {
   flight?: TravelerFlightBookingInfo;
+  /** Empty / null / undefined = no link. */
+  linkedClientId?: string | null;
 };
 
 export function addTravelerToGroup(
@@ -942,19 +1018,24 @@ export function addTravelerToGroup(
       ok: false,
       error:
         data.companionKind === "pet"
-          ? "Pet name and species are required."
+          ? "Pet name and type are required."
           : "First and last name are required.",
     };
   }
   const travelerId = `at-${clientId}-${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
   const flight = data.flight ? compactFlightFields(data.flight) : undefined;
   const companionKind = data.companionKind === "pet" ? "pet" : undefined;
+  const petNotesTrim = data.petNotes?.trim();
+  const linkRes = resolveTravelerLinkedClientId(clientId, data.companionKind, data.linkedClientId);
+  if (!linkRes.ok) return linkRes;
   group.travelers.push({
     id: travelerId,
     ...(companionKind ? { companionKind } : {}),
     firstName,
     lastName,
     relationship: data.relationship?.trim() || undefined,
+    ...(companionKind && petNotesTrim ? { petNotes: petNotesTrim } : {}),
+    ...(linkRes.linkedClientId ? { linkedClientId: linkRes.linkedClientId } : {}),
     flight,
   });
   return { ok: true, travelerId };
@@ -965,26 +1046,35 @@ export function updateTravelerInGroup(
   groupId: string,
   travelerId: string,
   data: TravelerUpsertPayload,
-): boolean {
+): { ok: true } | { ok: false; error: string } {
   const client = clients.find((c) => c.id === clientId);
-  if (!client?.travelerGroups) return false;
+  if (!client?.travelerGroups) return { ok: false, error: "Client not found." };
   const group = client.travelerGroups.find((g) => g.id === groupId);
-  if (!group) return false;
+  if (!group) return { ok: false, error: "Group not found." };
   const t = group.travelers.find((x) => x.id === travelerId);
-  if (!t) return false;
+  if (!t) return { ok: false, error: "Traveler not found." };
   const firstName = data.firstName.trim();
   const lastName = data.lastName.trim();
-  if (!firstName || !lastName) return false;
+  if (!firstName || !lastName) return { ok: false, error: "Name is required." };
+  const linkRes = resolveTravelerLinkedClientId(clientId, data.companionKind, data.linkedClientId);
+  if (!linkRes.ok) return linkRes;
   if (data.companionKind === "pet") {
     t.companionKind = "pet";
+    const petNotesTrim = data.petNotes?.trim();
+    if (petNotesTrim) t.petNotes = petNotesTrim;
+    else delete t.petNotes;
+    delete t.linkedClientId;
   } else {
     delete t.companionKind;
+    delete t.petNotes;
+    if (linkRes.linkedClientId) t.linkedClientId = linkRes.linkedClientId;
+    else delete t.linkedClientId;
   }
   t.firstName = firstName;
   t.lastName = lastName;
   t.relationship = data.relationship?.trim() || undefined;
   t.flight = data.flight ? compactFlightFields(data.flight) : undefined;
-  return true;
+  return { ok: true };
 }
 
 export function deleteTravelerFromGroup(clientId: string, groupId: string, travelerId: string): boolean {

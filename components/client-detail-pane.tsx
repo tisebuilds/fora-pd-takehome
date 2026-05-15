@@ -7,7 +7,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Copy, CreditCard, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
-import type { Client, ImportantDate, LoyaltyProgram } from "@/lib/types";
+import type {
+  Client,
+  ClientAddress,
+  CompanionLinkableClient,
+  ImportantDate,
+  LoyaltyProgram,
+} from "@/lib/types";
 import {
   clientDisplayName,
   formatAnnualEventCountdown,
@@ -23,8 +29,8 @@ import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
 import { AddImportantDateDialog } from "@/components/add-important-date-dialog";
 import { DeleteLoyaltyProgramDialog } from "@/components/delete-loyalty-program-dialog";
 import { EditLoyaltyProgramDialog } from "@/components/edit-loyalty-program-dialog";
-import { EditNotesDialog } from "@/components/edit-notes-dialog";
 import { AssociatedTravelersSection } from "@/components/associated-travelers-section";
+import { ClientProfileNotesTab } from "@/components/client-profile-notes-tab";
 import { DetailSection } from "@/components/detail-section";
 import {
   InlineSectionEmptyActionLabel,
@@ -94,23 +100,37 @@ function NotProvided() {
   return <span className="italic text-fora-muted">Not Provided</span>;
 }
 
-function CopyEmailButton({ address }: { address: string }) {
+const copyFieldButtonClass =
+  "shrink-0 rounded p-1 text-fora-muted hover:bg-fora-app hover:text-fora-navy";
+
+function CopyFieldButton({
+  text,
+  title,
+  ariaLabel,
+  successMessage = "Copied to clipboard",
+}: {
+  text: string;
+  title: string;
+  ariaLabel: string;
+  /** Toast after successful copy */
+  successMessage?: string;
+}) {
   return (
     <button
       type="button"
-      title="Copy email"
-      className="shrink-0 rounded p-1 text-fora-muted hover:bg-fora-app hover:text-fora-navy"
+      title={title}
+      className={copyFieldButtonClass}
       onClick={() => {
-        void navigator.clipboard.writeText(address).then(
+        void navigator.clipboard.writeText(text).then(
           () => {
-            toast.success("Email copied to clipboard");
+            toast.success(successMessage);
           },
           () => {
-            toast.error("Could not copy email");
+            toast.error("Could not copy");
           },
         );
       }}
-      aria-label="Copy email address"
+      aria-label={ariaLabel}
     >
       <Copy className="size-3.5" strokeWidth={2} />
     </button>
@@ -124,6 +144,21 @@ function FieldRow({ label, value }: { label: string; value: ReactNode }) {
       <div className="text-[14px] text-fora-navy">{value}</div>
     </div>
   );
+}
+
+/** Street line for display: line1, optional line2 (comma-separated). */
+function addressStreetDisplay(a: ClientAddress): string {
+  return [a.line1, a.line2].map((s) => s?.trim()).filter(Boolean).join(", ");
+}
+
+/** Street block for clipboard: line breaks between lines. */
+function addressStreetClipboard(a: ClientAddress): string {
+  return [a.line1, a.line2].map((s) => s?.trim()).filter(Boolean).join("\n");
+}
+
+/** City, state, country on one line (matches mailing-label style). */
+function addressCityStateCountryLine(a: ClientAddress): string {
+  return [a.city, a.state, a.country].map((s) => s?.trim()).filter(Boolean).join(", ");
 }
 
 function ImportantDateRow({
@@ -166,7 +201,7 @@ function ImportantDateRow({
 
 const SCROLL_TOP_PADDING_THRESHOLD_PX = 8;
 
-type ClientDetailTab = "details" | "associated";
+type ClientDetailTab = "details" | "associated" | "notes";
 
 const clientDetailTabButtonClass =
   "relative -mb-px border-b-2 border-transparent bg-transparent pb-2.5 text-[14px] font-normal leading-normal text-fora-muted outline-none transition-[color,border-color] duration-150 hover:text-black/70 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-black/15 focus-visible:ring-offset-2";
@@ -176,16 +211,21 @@ const clientDetailTabButtonSelectedClass =
 
 type LoyaltyDialogState = null | { kind: "add" } | { kind: "edit"; program: LoyaltyProgram };
 
-export function ClientDetailPane({ client, onClose }: { client: Client; onClose?: () => void }) {
+export function ClientDetailPane({
+  client,
+  companionLinkableClients = [],
+  onClose,
+}: {
+  client: Client;
+  /** Other profiles available when linking a person companion (from server; omit on routes that do not load it). */
+  companionLinkableClients?: CompanionLinkableClient[];
+  onClose?: () => void;
+}) {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [addCardOpen, setAddCardOpen] = useState(false);
   const [addImportantDateOpen, setAddImportantDateOpen] = useState(false);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  /** Local edits keyed by client id — avoids syncing `client.notes` via an effect. */
-  const [noteEdits, setNoteEdits] = useState<Record<string, string | null>>({});
-  const [notesFormKey, setNotesFormKey] = useState(0);
   const [loyaltyDialog, setLoyaltyDialog] = useState<LoyaltyDialogState>(null);
   const [loyaltyDeleteProgram, setLoyaltyDeleteProgram] = useState<LoyaltyProgram | null>(null);
   const [loyaltyDialogFormKey, setLoyaltyDialogFormKey] = useState(0);
@@ -193,14 +233,6 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   const [creditCardDetailsSignal, setCreditCardDetailsSignal] = useState(0);
   const creditCardsAnchorRef = useRef<HTMLDivElement>(null);
   const [detailTab, setDetailTab] = useState<ClientDetailTab>("details");
-
-  const notesSnapshot =
-    Object.hasOwn(noteEdits, client.id) ? noteEdits[client.id] : client.notes;
-
-  const openNotesModal = () => {
-    setNotesFormKey((k) => k + 1);
-    setNotesDialogOpen(true);
-  };
 
   const openLoyaltyEdit = (lp: LoyaltyProgram) => {
     setLoyaltyDialogFormKey((k) => k + 1);
@@ -253,6 +285,13 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
   const mobile = personalMobile(client);
   const email = personalEmail(client);
   const address = client.addresses[0];
+  const addressStreetLine = address ? addressStreetDisplay(address) : "";
+  const addressStreetClipboardText = address ? addressStreetClipboard(address) : "";
+  const addressCityStateCountry = address ? addressCityStateCountryLine(address) : "";
+  const addressZipLine = address?.zip?.trim() ?? "";
+  const addressFieldHasValue = Boolean(
+    addressStreetLine || addressCityStateCountry || addressZipLine,
+  );
   const birthday = client.importantDates.find((d) => d.label === "Birthday");
   const anniversary = client.importantDates.find((d) => d.label === "Anniversary");
   const cityState = formatCityState(client);
@@ -339,6 +378,21 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 >
                   Companions
                 </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="client-tab-notes-trigger"
+                  aria-selected={detailTab === "notes"}
+                  aria-controls="client-tab-notes-panel"
+                  tabIndex={detailTab === "notes" ? 0 : -1}
+                  onClick={() => setDetailTab("notes")}
+                  className={cn(
+                    clientDetailTabButtonClass,
+                    detailTab === "notes" && clientDetailTabButtonSelectedClass,
+                  )}
+                >
+                  Notes
+                </button>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:pt-1">
@@ -405,8 +459,42 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
             }
           >
             <div>
-              <FieldRow label="First name" value={client.firstName} />
-              <FieldRow label="Last name" value={client.lastName} />
+              <FieldRow
+                label="First name"
+                value={
+                  client.firstName.trim() ? (
+                    <span className="inline-flex max-w-full min-w-0 items-center gap-2">
+                      <span className="min-w-0 shrink">{client.firstName}</span>
+                      <CopyFieldButton
+                        text={client.firstName}
+                        title="Copy first name"
+                        aria-label="Copy first name"
+                        successMessage="First name copied to clipboard"
+                      />
+                    </span>
+                  ) : (
+                    <NotProvided />
+                  )
+                }
+              />
+              <FieldRow
+                label="Last name"
+                value={
+                  client.lastName.trim() ? (
+                    <span className="inline-flex max-w-full min-w-0 items-center gap-2">
+                      <span className="min-w-0 shrink">{client.lastName}</span>
+                      <CopyFieldButton
+                        text={client.lastName}
+                        title="Copy last name"
+                        aria-label="Copy last name"
+                        successMessage="Last name copied to clipboard"
+                      />
+                    </span>
+                  ) : (
+                    <NotProvided />
+                  )
+                }
+              />
               <FieldRow
                 label="Personal email"
                 value={
@@ -418,7 +506,12 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                       >
                         {email.address}
                       </a>
-                      <CopyEmailButton address={email.address} />
+                      <CopyFieldButton
+                        text={email.address}
+                        title="Copy email"
+                        aria-label="Copy email address"
+                        successMessage="Email copied to clipboard"
+                      />
                     </span>
                   ) : (
                     <NotProvided />
@@ -429,9 +522,17 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
                 label="Mobile number"
                 value={
                   mobile && formatPhoneDisplay(mobile) ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Flag code={mobile.country} />
-                      {formatPhoneDisplay(mobile)}
+                    <span className="inline-flex max-w-full min-w-0 items-center gap-2">
+                      <span className="inline-flex min-w-0 flex-1 items-center gap-1.5">
+                        <Flag code={mobile.country} />
+                        <span className="min-w-0 shrink">{formatPhoneDisplay(mobile)}</span>
+                      </span>
+                      <CopyFieldButton
+                        text={formatPhoneDisplay(mobile)!}
+                        title="Copy mobile number"
+                        aria-label="Copy mobile number"
+                        successMessage="Mobile number copied to clipboard"
+                      />
                     </span>
                   ) : (
                     <NotProvided />
@@ -441,19 +542,46 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               <FieldRow
                 label="Address"
                 value={
-                  address ? (
-                    <span className="whitespace-pre-line">
-                      {[
-                        address.line1,
-                        address.line2,
-                        [address.city, address.state].filter((s) => s && s.trim()).join(", ") +
-                          (address.zip ? ` ${address.zip}` : ""),
-                      ]
-                        .filter((s) => s && String(s).trim())
-                        .join("\n")}
-                    </span>
-                  ) : (
+                  !address ? (
                     <NotProvided />
+                  ) : !addressFieldHasValue ? (
+                    <NotProvided />
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {addressStreetLine ? (
+                        <div className="inline-flex max-w-full items-center gap-2">
+                          <span className="min-w-0 break-words">{addressStreetLine}</span>
+                          <CopyFieldButton
+                            text={addressStreetClipboardText}
+                            title="Copy street address"
+                            aria-label="Copy street address"
+                            successMessage="Street address copied to clipboard"
+                          />
+                        </div>
+                      ) : null}
+                      {addressCityStateCountry ? (
+                        <div className="inline-flex max-w-full items-center gap-2">
+                          <span className="min-w-0 break-words">{addressCityStateCountry}</span>
+                          <CopyFieldButton
+                            text={addressCityStateCountry}
+                            title="Copy city, state, and country"
+                            aria-label="Copy city, state, and country"
+                            successMessage="City and region copied to clipboard"
+                          />
+                        </div>
+                      ) : null}
+                      {addressZipLine ? (
+                        <div className="inline-flex max-w-full items-center gap-2">
+                          <span className="min-w-0 break-words">{addressZipLine}</span>
+                          <CopyFieldButton
+                            text={addressZipLine}
+                            title="Copy ZIP code"
+                            aria-label="Copy ZIP code"
+                            successMessage="ZIP code copied to clipboard"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
                   )
                 }
               />
@@ -484,39 +612,6 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               ) : null}
             </div>
             <AddImportantDateDialog open={addImportantDateOpen} onOpenChange={setAddImportantDateOpen} />
-          </DetailSection>
-
-          <DetailSection
-            title="Notes"
-            action={
-              <button
-                type="button"
-                onClick={openNotesModal}
-                className={editLinkCls}
-                aria-label={notesSnapshot ? "Edit client notes" : "Add client notes"}
-              >
-                {notesSnapshot ? "Edit" : "+ Add"}
-              </button>
-            }
-          >
-            {notesSnapshot ? (
-              <div className="rounded-lg bg-fora-app px-4 py-3 text-[14px] text-fora-navy">
-                {notesSnapshot}
-              </div>
-            ) : (
-              <p className="text-[14px] text-fora-muted">
-                <span className="text-fora-link">Add</span> your client&apos;s travel preferences…
-              </p>
-            )}
-            <EditNotesDialog
-              open={notesDialogOpen}
-              onOpenChange={setNotesDialogOpen}
-              formKey={notesFormKey}
-              initialNotes={notesSnapshot}
-              onSave={(text) =>
-                setNoteEdits((prev) => ({ ...prev, [client.id]: text || null }))
-              }
-            />
           </DetailSection>
 
           <div
@@ -702,7 +797,7 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
           </DetailSection>
             </div>
           </div>
-        ) : (
+        ) : detailTab === "associated" ? (
           <div
             id="client-tab-associated-panel"
             role="tabpanel"
@@ -717,8 +812,11 @@ export function ClientDetailPane({ client, onClose }: { client: Client; onClose?
               onOpenPrimaryClientProfile={() => setDetailTab("details")}
               clientCreditCards={client.creditCards}
               clientBillingAddress={client.addresses[0] ?? null}
+              companionLinkableClients={companionLinkableClients}
             />
           </div>
+        ) : (
+          <ClientProfileNotesTab client={client} />
         )}
       </div>
     </div>
