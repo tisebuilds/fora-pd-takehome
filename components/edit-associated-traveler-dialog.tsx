@@ -52,6 +52,11 @@ const SELECT_TRIGGER = cn(
 const segmentWrap =
   "flex shrink-0 rounded-full border border-fora-border bg-neutral-100/80 p-0.5 gap-0.5 sm:inline-flex";
 
+/** Visual indicator for fields required to save (HTML `required` / submit validation). */
+function RequiredFieldMark() {
+  return <span className="text-fora-navy" aria-hidden="true">{`\u00a0*`}</span>;
+}
+
 function segmentBtn(active: boolean) {
   return cn(
     "inline-flex h-9 min-w-[4.5rem] flex-1 items-center justify-center rounded-full px-3 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-border/60 sm:flex-none",
@@ -138,11 +143,13 @@ function RelationshipSelect({
   value,
   onChange,
   required,
+  mode,
 }: {
   id: string;
   value: CompanionRelationship | "";
   onChange: (next: CompanionRelationship | "") => void;
   required?: boolean;
+  mode: "add" | "edit";
 }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -172,6 +179,7 @@ function RelationshipSelect({
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-sm font-normal text-fora-muted">
         Relationship
+        {required && mode === "add" ? <RequiredFieldMark /> : null}
         {!required ? <span className="text-fora-muted"> (optional)</span> : null}
       </Label>
       <Select
@@ -620,6 +628,7 @@ function AssociatedTravelerForm({
                 <div className="space-y-1.5">
                   <Label htmlFor={`${reactId}-petname`} className="text-sm font-normal text-fora-muted">
                     Name
+                    {mode === "add" ? <RequiredFieldMark /> : null}
                   </Label>
                   <Input
                     id={`${reactId}-petname`}
@@ -634,6 +643,7 @@ function AssociatedTravelerForm({
                 <div className="space-y-1.5">
                   <Label htmlFor={`${reactId}-pet-type`} className="text-sm font-normal text-fora-muted">
                     Type
+                    {mode === "add" ? <RequiredFieldMark /> : null}
                   </Label>
                   <Select
                     modal={false}
@@ -657,8 +667,9 @@ function AssociatedTravelerForm({
               </div>
               {petType === "__other__" ? (
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${reactId}-pet-type-custom`} className="sr-only">
-                    Describe pet type
+                  <Label htmlFor={`${reactId}-pet-type-custom`} className="text-sm font-normal text-fora-muted">
+                    Describe type
+                    {mode === "add" ? <RequiredFieldMark /> : null}
                   </Label>
                   <Input
                     id={`${reactId}-pet-type-custom`}
@@ -690,6 +701,7 @@ function AssociatedTravelerForm({
               <div className="relative space-y-1.5">
                 <Label htmlFor={`${reactId}-legal`} className="text-sm font-normal text-fora-muted">
                   Name — legal name as on ID, or search saved profiles
+                  {mode === "add" ? <RequiredFieldMark /> : null}
                 </Label>
                 <Input
                   id={`${reactId}-legal`}
@@ -761,6 +773,7 @@ function AssociatedTravelerForm({
                 value={relationship}
                 onChange={setRelationship}
                 required
+                mode={mode}
               />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
