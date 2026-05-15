@@ -33,11 +33,68 @@ export const COMPANION_RELATIONSHIP_LABELS: Record<CompanionRelationship, string
   "linked-traveler": "Linked traveler",
   other: "Other",
   sibling: "Sibling",
-  "partner-unmarried": "Partner, unmarried",
+  "partner-unmarried": "Partner",
   "in-law": "In-law",
-  "caregiver-guardian": "Caregiver, guardian",
+  "caregiver-guardian": "Caregiver / guardian",
   colleague: "Colleague",
 };
+
+export type CompanionRelationshipGroupId = "family" | "personal" | "business";
+
+export type CompanionRelationshipGroup = {
+  id: CompanionRelationshipGroupId;
+  label: string;
+  relationships: readonly CompanionRelationship[];
+};
+
+/** UI grouping for the relationship picker (each canonical value appears exactly once). */
+export const COMPANION_RELATIONSHIP_GROUPS: readonly CompanionRelationshipGroup[] = [
+  {
+    id: "family",
+    label: "Family",
+    relationships: [
+      "spouse",
+      "partner-unmarried",
+      "child",
+      "parent",
+      "sibling",
+      "grandparent",
+      "grandchild",
+      "in-law",
+      "general-family",
+    ],
+  },
+  {
+    id: "personal",
+    label: "Personal",
+    relationships: ["friend", "caregiver-guardian", "colleague"],
+  },
+  {
+    id: "business",
+    label: "Business",
+    relationships: ["sub-client", "linked-traveler", "other"],
+  },
+];
+
+if (process.env.NODE_ENV !== "production") {
+  const fromGroups = COMPANION_RELATIONSHIP_GROUPS.flatMap((g) => [...g.relationships]);
+  const sortedExpected = [...COMPANION_RELATIONSHIPS].sort().join("\0");
+  const sortedFromGroups = [...fromGroups].sort().join("\0");
+  if (sortedExpected !== sortedFromGroups) {
+    throw new Error(
+      "COMPANION_RELATIONSHIP_GROUPS must list each COMPANION_RELATIONSHIPS value exactly once (no duplicates or omissions).",
+    );
+  }
+}
+
+export function companionRelationshipGroupId(
+  relationship: CompanionRelationship,
+): CompanionRelationshipGroupId {
+  for (const g of COMPANION_RELATIONSHIP_GROUPS) {
+    if (g.relationships.includes(relationship)) return g.id;
+  }
+  throw new Error(`No relationship group for: ${relationship}`);
+}
 
 const LEGACY_RELATIONSHIP_MAP: Record<string, CompanionRelationship> = {
   spouse: "spouse",

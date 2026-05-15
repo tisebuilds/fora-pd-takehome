@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Collapsible } from "@base-ui/react/collapsible";
 import { Dialog } from "@base-ui/react/dialog";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronDown, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
-  COMPANION_RELATIONSHIPS,
+  COMPANION_RELATIONSHIP_GROUPS,
   COMPANION_RELATIONSHIP_LABELS,
+  companionRelationshipGroupId,
   isCompanionRelationship,
   type CompanionRelationship,
+  type CompanionRelationshipGroupId,
 } from "@/lib/companions";
 import type {
   AssociatedTraveler,
@@ -26,7 +29,9 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -120,6 +125,14 @@ function parseLegalName(raw: string): { ok: true; firstName: string; lastName: s
   return { ok: true, firstName: parts[0]!, lastName: parts.slice(1).join(" ") };
 }
 
+function relationshipSearchMatch(rel: CompanionRelationship, q: string): boolean {
+  const needle = q.trim().toLowerCase();
+  if (!needle) return true;
+  const label = COMPANION_RELATIONSHIP_LABELS[rel].toLowerCase();
+  const slug = rel.toLowerCase().replace(/-/g, " ");
+  return label.includes(needle) || slug.includes(needle);
+}
+
 function RelationshipSelect({
   id,
   value,
@@ -131,6 +144,30 @@ function RelationshipSelect({
   onChange: (next: CompanionRelationship | "") => void;
   required?: boolean;
 }) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
+  const [sectionOpen, setSectionOpen] = useState<Record<CompanionRelationshipGroupId, boolean>>(() =>
+    Object.fromEntries(COMPANION_RELATIONSHIP_GROUPS.map((g) => [g.id, true])) as Record<
+      CompanionRelationshipGroupId,
+      boolean
+    >,
+  );
+
+  const searching = query.trim().length > 0;
+
+  const visibleGroups = useMemo(() => {
+    return COMPANION_RELATIONSHIP_GROUPS.map((g) => ({
+      ...g,
+      relationships: g.relationships.filter((rel) => relationshipSearchMatch(rel, query)),
+    })).filter((g) => g.relationships.length > 0);
+  }, [query]);
+
+  const expandGroupForRelationship = useCallback((rel: CompanionRelationship | "") => {
+    if (!rel || !isCompanionRelationship(rel)) return;
+    const gid = companionRelationshipGroupId(rel);
+    setSectionOpen((prev) => ({ ...prev, [gid]: true }));
+  }, []);
+
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-sm font-normal text-fora-muted">
@@ -140,17 +177,112 @@ function RelationshipSelect({
       <Select
         modal={false}
         value={value || null}
-        onValueChange={(next) => onChange((next ?? "") as CompanionRelationship | "")}
+        onOpenChange={(popupOpen) => {
+          if (popupOpen) {
+            expandGroupForRelationship(value);
+            queueMicrotask(() => searchInputRef.current?.focus());
+          } else {
+            setQuery("");
+          }
+        }}
+        onValueChange={(next) => {
+          const rel = (next ?? "") as CompanionRelationship | "";
+          expandGroupForRelationship(rel);
+          onChange(rel);
+        }}
       >
         <SelectTrigger id={id} className={SELECT_TRIGGER}>
           <SelectValue placeholder="Select relationship" />
         </SelectTrigger>
-        <SelectContent>
-          {COMPANION_RELATIONSHIPS.map((rel) => (
-            <SelectItem key={rel} value={rel}>
-              {COMPANION_RELATIONSHIP_LABELS[rel]}
-            </SelectItem>
-          ))}
+        <SelectContent
+          alignItemWithTrigger={false}
+          align="start"
+          className="max-h-[min(70vh,420px)] w-[min(100vw-1.5rem,22rem)] min-w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-[12px] border border-fora-border bg-white p-0 shadow-lg ring-fora-border/20"
+        >
+          <div
+            className="sticky top-0 z-10 border-b border-fora-border/80 bg-white px-2.5 pb-2 pt-2"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-fora-muted"
+                aria-hidden
+              />
+              <input
+                ref={searchInputRef}
+                type="search"
+                autoComplete="off"
+                placeholder="Search relationships..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Tab") return;
+                  e.stopPropagation();
+                }}
+                className={cn(
+                  FIELD,
+                  "h-10 border-fora-border py-0 pl-9 text-[15px] placeholder:text-fora-muted",
+                )}
+                aria-label="Search relationships"
+              />
+            </div>
+          </div>
+          <div className="max-h-[min(55vh,340px)] overflow-y-auto overscroll-contain px-0 pb-2 pt-1">
+            {searching && visibleGroups.length === 0 ? (
+              <p className="px-4 py-8 text-center text-[15px] text-fora-muted">No matching relationships.</p>
+            ) : (
+              visibleGroups.map((group, index) => {
+                const filtered = group.relationships;
+                const panelOpen = searching ? filtered.length > 0 : sectionOpen[group.id];
+                return (
+                  <div key={group.id}>
+                    {index > 0 ? (
+                      <SelectSeparator className="mx-0 my-0 h-px shrink-0 bg-fora-border/70" />
+                    ) : null}
+                    <SelectGroup aria-label={group.label} className="p-0">
+                      <Collapsible.Root
+                        open={panelOpen}
+                        onOpenChange={(open) => {
+                          if (!searching) setSectionOpen((prev) => ({ ...prev, [group.id]: open }));
+                        }}
+                      >
+                        <Collapsible.Trigger
+                          type="button"
+                          className={cn(
+                            "flex w-full cursor-default items-center justify-between gap-2 px-3 py-2.5 text-left outline-none select-none hover:bg-neutral-50 focus-visible:bg-neutral-100",
+                          )}
+                        >
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-fora-muted">
+                            {group.label}
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "size-4 shrink-0 text-fora-muted/80 transition-transform duration-200",
+                              panelOpen ? "rotate-180" : "rotate-0",
+                            )}
+                            aria-hidden
+                          />
+                        </Collapsible.Trigger>
+                        <Collapsible.Panel>
+                          <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 px-2 pb-3 pt-0.5">
+                            {filtered.map((rel) => (
+                              <SelectItem
+                                key={rel}
+                                value={rel}
+                                className="relative col-span-1 min-h-[2.75rem] w-full items-center justify-start rounded-md py-2 pr-7 pl-2 text-left text-[15px] font-normal text-fora-navy focus:bg-neutral-100/90 data-highlighted:bg-neutral-100/90"
+                              >
+                                {COMPANION_RELATIONSHIP_LABELS[rel]}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        </Collapsible.Panel>
+                      </Collapsible.Root>
+                    </SelectGroup>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </SelectContent>
       </Select>
     </div>
@@ -276,14 +408,6 @@ function AssociatedTravelerForm({
     onPetLayoutChange?.(companionKind === "pet");
   }, [companionKind, onPetLayoutChange]);
 
-  useEffect(() => {
-    if (companionKind === "pet") {
-      setLinkedClientId(null);
-      setLinkListOpen(false);
-      setRelationship("");
-    }
-  }, [companionKind]);
-
   const pickLinkedClient = (row: CompanionLinkableClient) => {
     cancelCloseLinkList();
     setLinkedClientId(row.id);
@@ -379,7 +503,16 @@ function AssociatedTravelerForm({
           >
             Person
           </button>
-          <button type="button" onClick={() => setCompanionKind("pet")} className={segmentBtn(companionKind === "pet")}>
+          <button
+            type="button"
+            onClick={() => {
+              setCompanionKind("pet");
+              setLinkedClientId(null);
+              setLinkListOpen(false);
+              setRelationship("");
+            }}
+            className={segmentBtn(companionKind === "pet")}
+          >
             Pet
           </button>
         </div>
@@ -779,12 +912,9 @@ export function EditAssociatedTravelerDialog({
 }: Props) {
   const [narrowPetLayout, setNarrowPetLayout] = useState(false);
 
-  useEffect(() => {
-    if (!open) setNarrowPetLayout(false);
-  }, [open]);
-
   const handleOpenChange = useCallback(
     (next: boolean) => {
+      if (!next) setNarrowPetLayout(false);
       onOpenChange(next);
     },
     [onOpenChange],
