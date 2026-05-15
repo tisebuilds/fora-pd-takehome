@@ -153,6 +153,172 @@ export function cardExpirySpaced(m: number, y2: number): string {
 /** Single-line facts shown on household / companion cards for flight booking. */
 export type FlightBookingCardRow = { label: string; value: string };
 
+export type CompanionProfileDetailKind =
+  | "dateOfBirth"
+  | "gender"
+  | "nationality"
+  | "email"
+  | "phone"
+  | "passport"
+  | "knownTraveler"
+  | "airlineLoyalty";
+
+/** Structured row for companion profile cards (icon + label + value layout). */
+export type CompanionProfileDetailField = {
+  kind: CompanionProfileDetailKind;
+  label: string;
+  value: string;
+  /** Muted parenthetical after value, e.g. age in years. */
+  valueSuffix?: string;
+  /** When set with a passport number, drives the validity pill. */
+  passportExpiry?: string;
+};
+
+const COUNTRY_DISPLAY =
+  typeof Intl !== "undefined"
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null;
+
+/** ISO code or free text → display name (e.g. US → United States). */
+export function formatNationalityDisplay(raw: string): string {
+  const t = raw.trim();
+  if (!t) return "";
+  if (t.length === 2 && /^[A-Za-z]{2}$/.test(t)) {
+    const code = t.toUpperCase();
+    try {
+      return COUNTRY_DISPLAY?.of(code) ?? t;
+    } catch {
+      return t;
+    }
+  }
+  return t;
+}
+
+function parseCalendarDateParts(
+  raw: string,
+): { year: number; month: number; day: number } | null {
+  const t = raw.trim();
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t);
+  if (iso) {
+    const year = Number(iso[1]);
+    const month = Number(iso[2]);
+    const day = Number(iso[3]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return { year, month, day };
+    }
+    return null;
+  }
+  const parsed = Date.parse(t);
+  if (Number.isNaN(parsed)) return null;
+  const d = new Date(parsed);
+  return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+}
+
+/** Whole years between DOB and `asOf` (local calendar), when parseable. */
+export function ageYearsFromDateOfBirth(dob: string, asOf: Date = new Date()): number | null {
+  const parts = parseCalendarDateParts(dob);
+  if (!parts) return null;
+  let age = asOf.getFullYear() - parts.year;
+  const hasHadBirthday =
+    asOf.getMonth() + 1 > parts.month ||
+    (asOf.getMonth() + 1 === parts.month && asOf.getDate() >= parts.day);
+  if (!hasHadBirthday) age -= 1;
+  return age >= 0 ? age : null;
+}
+
+export function isPassportCurrentlyValid(expiry: string, asOf: Date = new Date()): boolean {
+  const parts = parseCalendarDateParts(expiry);
+  if (!parts) return false;
+  const end = new Date(parts.year, parts.month - 1, parts.day, 23, 59, 59, 999);
+  const today = new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate());
+  return end >= today;
+}
+
+export function profileDetailFieldsSearchBlob(fields: CompanionProfileDetailField[]): string {
+  return fields
+    .map((f) => [f.label, f.value, f.valueSuffix ?? ""].join(" "))
+    .join(" ");
+}
+
+function buildProfileDetailFields(
+  flight: TravelerFlightBookingInfo | undefined,
+  extras?: { airlineLoyalty: { label: string; value: string }[] },
+): CompanionProfileDetailField[] {
+  if (!flight && !extras?.airlineLoyalty?.length) return [];
+  const fields: CompanionProfileDetailField[] = [];
+  const f = flight ?? {};
+
+  const dob = f.dateOfBirth?.trim();
+  if (dob) {
+    const age = ageYearsFromDateOfBirth(dob);
+    fields.push({
+      kind: "dateOfBirth",
+      label: "Date of birth",
+      value: dob,
+      valueSuffix: age != null ? `${age} yrs` : undefined,
+    });
+  }
+
+  const gender = f.gender?.trim();
+  if (gender) {
+    fields.push({ kind: "gender", label: "Gender", value: gender });
+  }
+
+  const nationality = f.nationality?.trim();
+  if (nationality) {
+    fields.push({
+      kind: "nationality",
+      label: "Nationality",
+      value: formatNationalityDisplay(nationality),
+    });
+  }
+
+  const email = f.email?.trim();
+  if (email) {
+    fields.push({ kind: "email", label: "Email", value: email });
+  }
+
+  const phone = f.phone?.trim();
+  if (phone) {
+    fields.push({ kind: "phone", label: "Phone", value: phone });
+  }
+
+  const passportNumber = f.passportNumber?.trim();
+  const passportExpiry = f.passportExpiry?.trim();
+  if (passportNumber) {
+    fields.push({
+      kind: "passport",
+      label: "Passport",
+      value: passportNumber,
+      passportExpiry: passportExpiry || undefined,
+    });
+  } else if (passportExpiry) {
+    fields.push({
+      kind: "passport",
+      label: "Passport",
+      value: "—",
+      passportExpiry,
+    });
+  }
+
+  const ktn = f.knownTravelerNumber?.trim();
+  if (ktn) {
+    fields.push({ kind: "knownTraveler", label: "Known Traveler #", value: ktn });
+  }
+
+  for (const row of extras?.airlineLoyalty ?? []) {
+    if (row.value.trim()) {
+      fields.push({
+        kind: "airlineLoyalty",
+        label: row.label,
+        value: row.value,
+      });
+    }
+  }
+
+  return fields;
+}
+
 const AIRLINE_LOYALTY_NAME_RE =
   /\b(airlines?|airline|mileage|miles|plus|skymiles|aadvantage|delta|united|american|southwest|jetblue|alaska|spirit|frontier|british|lufthansa|emirates|qatar|iberia|hawaiian)\b/i;
 
@@ -160,76 +326,72 @@ function isLikelyAirlineLoyalty(programName: string): boolean {
   return AIRLINE_LOYALTY_NAME_RE.test(programName);
 }
 
-/** Structured rows from a companion / household member `flight` block. */
+/** Profile detail fields from a companion / household member `flight` block. */
+export function companionProfileDetailFields(
+  flight: TravelerFlightBookingInfo | undefined,
+): CompanionProfileDetailField[] {
+  return buildProfileDetailFields(flight);
+}
+
+/** @deprecated Use {@link companionProfileDetailFields} */
 export function companionFlightBookingCardRows(
   flight: TravelerFlightBookingInfo | undefined,
 ): FlightBookingCardRow[] {
-  if (!flight) return [];
-  const rows: FlightBookingCardRow[] = [];
-  const add = (label: string, v: string | undefined) => {
-    const t = v?.trim();
-    if (t) rows.push({ label, value: t });
-  };
-  add("DOB", flight.dateOfBirth);
-  add("Gender", flight.gender);
-  add("Email", flight.email);
-  add("Phone", flight.phone);
-  add("Nationality", flight.nationality);
-  add("Passport", flight.passportNumber);
-  add("Passport expires", flight.passportExpiry);
-  add("Known Traveler #", flight.knownTravelerNumber);
-  return rows;
+  return companionProfileDetailFields(flight).map((f) => ({
+    label: f.label,
+    value: [f.value, f.valueSuffix].filter(Boolean).join(" "),
+  }));
 }
 
 /**
- * Rows for the primary client on a household card: `client.flight` booking IDs plus profile
- * fallbacks (birthday from important dates, email/phone when not overridden in `flight`).
+ * Profile fields for the primary client on a household card: `client.flight` booking IDs plus
+ * profile fallbacks (birthday from important dates, email/phone when not overridden in `flight`).
  * Airline loyalty rows come from loyalty programs that look like airline schemes.
  */
-export function primaryClientFlightBookingCardRows(client: Client): FlightBookingCardRow[] {
-  const rows: FlightBookingCardRow[] = [];
-  const f = client.flight;
-  const add = (label: string, v: string | undefined) => {
-    const t = v?.trim();
-    if (t) rows.push({ label, value: t });
-  };
-
+export function primaryClientProfileDetailFields(client: Client): CompanionProfileDetailField[] {
+  const f = client.flight ?? {};
   const birthday = client.importantDates.find((d) => /^birthday$/i.test(d.label.trim()));
   const dobFromImportant =
     birthday != null ? formatImportantDate(birthday.month, birthday.day, birthday.year) : null;
-  add("DOB", f?.dateOfBirth?.trim() || dobFromImportant || undefined);
 
-  add("Gender", f?.gender);
-
-  const emailFromFlight = f?.email?.trim();
+  const emailFromFlight = f.email?.trim();
   const emailFromProfile = (client.emails.find((e) => e.type === "personal") ?? client.emails[0])
     ?.address?.trim();
-  add("Email", emailFromFlight || emailFromProfile);
 
-  const phoneFromFlight = f?.phone?.trim();
+  const phoneFromFlight = f.phone?.trim();
   const phone = client.phones.find((p) => p.type === "mobile") ?? client.phones[0];
   const phoneFromProfile = phone ? formatPhoneDisplay(phone) : null;
-  add("Phone", phoneFromFlight || phoneFromProfile || undefined);
 
-  add("Nationality", f?.nationality);
-  add("Passport", f?.passportNumber);
-  add("Passport expires", f?.passportExpiry);
-  add("Known Traveler #", f?.knownTravelerNumber);
+  const airlineLoyalty = client.loyaltyPrograms
+    .filter((lp) => isLikelyAirlineLoyalty(lp.programName))
+    .map((lp) => {
+      const name = lp.programName.trim();
+      const num = lp.accountNumber.trim();
+      if (!name && !num) return null;
+      return {
+        label: "Airline loyalty",
+        value: num ? `${name} · ${num}` : name,
+      };
+    })
+    .filter((row): row is { label: string; value: string } => row !== null);
 
-  const airlinePrograms = client.loyaltyPrograms.filter((lp) =>
-    isLikelyAirlineLoyalty(lp.programName),
+  return buildProfileDetailFields(
+    {
+      ...f,
+      dateOfBirth: f.dateOfBirth?.trim() || dobFromImportant || undefined,
+      email: emailFromFlight || emailFromProfile,
+      phone: phoneFromFlight || phoneFromProfile || undefined,
+    },
+    { airlineLoyalty },
   );
-  for (const lp of airlinePrograms) {
-    const name = lp.programName.trim();
-    const num = lp.accountNumber.trim();
-    if (!name && !num) continue;
-    rows.push({
-      label: "Airline loyalty",
-      value: num ? `${name} · ${num}` : name,
-    });
-  }
+}
 
-  return rows;
+/** @deprecated Use {@link primaryClientProfileDetailFields} */
+export function primaryClientFlightBookingCardRows(client: Client): FlightBookingCardRow[] {
+  return primaryClientProfileDetailFields(client).map((field) => ({
+    label: field.label,
+    value: [field.value, field.valueSuffix].filter(Boolean).join(" "),
+  }));
 }
 
 export function clientSearchBlob(c: Client): string {

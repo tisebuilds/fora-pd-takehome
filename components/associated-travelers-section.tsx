@@ -1,15 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { CreditCard as CreditCardIcon, MoreHorizontal, Pencil, Search, Trash2, UserRound } from "lucide-react";
+import {
+  ChevronDown,
+  CreditCard as CreditCardIcon,
+  MoreHorizontal,
+  Pencil,
+  Search,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
+import { companionRelationshipLabel } from "@/lib/companions";
 import type { AssociatedTraveler, ClientAddress, CompanionLinkableClient, CreditCard, TravelerGroup } from "@/lib/types";
 import {
-  companionFlightBookingCardRows,
-  type FlightBookingCardRow,
+  companionProfileDetailFields,
+  profileDetailFieldsSearchBlob,
+  type CompanionProfileDetailField,
 } from "@/lib/format";
+import { CompanionProfileDetails } from "@/components/companion-profile-details";
 import { CreditCardRow } from "@/components/credit-card-row";
 import { DeleteAssociatedTravelerDialog } from "@/components/delete-associated-traveler-dialog";
 import { DeleteTravelerGroupDialog } from "@/components/delete-traveler-group-dialog";
@@ -35,11 +46,93 @@ const menuItemClass =
 const NO_GROUP_PAYMENT_IDS: string[] = [];
 
 const ROW_CARD =
-  "flex items-start gap-3 rounded-[14px] border border-fora-border bg-white px-4 py-3.5";
+  "rounded-[14px] border border-fora-border bg-white py-4 pl-5 pr-5";
 
 /** Matches the “Primary” label on the primary client row; also used for relationship / pet role. */
 const ROLE_BADGE_CLASS =
   "ml-2 align-middle text-[10px] font-semibold uppercase tracking-[0.06em] text-fora-muted";
+
+const CARD_INTERACTIVE_SELECTOR = "button, a, [role='menuitem'], input, textarea, select";
+
+function TravelerProfileCard({
+  ariaLabel,
+  header,
+  menuItems,
+  fields,
+  emptyHint,
+}: {
+  ariaLabel: string;
+  header: ReactNode;
+  menuItems: ReactNode;
+  fields: CompanionProfileDetailField[];
+  emptyHint: string;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const detailsId = useId();
+
+  const toggleExpanded = () => setExpanded((open) => !open);
+
+  const handleCardClick = (event: MouseEvent<HTMLLIElement>) => {
+    if ((event.target as HTMLElement).closest(CARD_INTERACTIVE_SELECTOR)) return;
+    toggleExpanded();
+  };
+
+  return (
+    <li
+      className={cn(ROW_CARD, "list-none cursor-pointer")}
+      onClick={handleCardClick}
+      aria-expanded={expanded}
+    >
+      <div className="flex items-center gap-3">
+        {header}
+        <div data-prevent-card-toggle onClick={(event) => event.stopPropagation()}>
+          <Menu.Root>
+            <Menu.Trigger
+              type="button"
+              className="-mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
+              aria-label={`More options for ${ariaLabel}`}
+            >
+              <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner sideOffset={6} align="end">
+                <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                  {menuItems}
+                  <Menu.Item
+                    className={menuItemClass}
+                    onClick={() => setExpanded((open) => !open)}
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "size-3.5 shrink-0 opacity-70 transition-transform duration-200",
+                        expanded && "-rotate-180",
+                      )}
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                    {expanded ? "Collapse" : "Expand"}
+                  </Menu.Item>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        </div>
+      </div>
+      <div
+        id={detailsId}
+        className={cn(
+          "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+        aria-hidden={!expanded}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <CompanionProfileDetails fields={fields} emptyHint={emptyHint} />
+        </div>
+      </div>
+    </li>
+  );
+}
 
 const AVATAR_BGS = [
   "bg-gradient-to-br from-[#1e3a8a] to-[#172554] text-white",
@@ -88,30 +181,6 @@ function companionInitials(t: AssociatedTraveler): string {
   return placardInitials(`${t.firstName} ${t.lastName}`);
 }
 
-function FlightBookingCardDetails({
-  rows,
-  emptyHint,
-}: {
-  rows: FlightBookingCardRow[];
-  emptyHint: string;
-}) {
-  if (rows.length === 0) {
-    return <p className="mt-1 text-[12px] leading-snug text-fora-muted">{emptyHint}</p>;
-  }
-  return (
-    <dl className="mt-1.5 grid gap-x-4 gap-y-1.5 text-[12px] leading-snug sm:grid-cols-2">
-      {rows.map((row, i) => (
-        <div key={`${row.label}-${i}`} className="min-w-0">
-          <dt className="font-medium text-fora-muted">{row.label}</dt>
-          <dd className="break-words text-fora-navy" title={row.value}>
-            {row.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 function flightSearchText(f: AssociatedTraveler["flight"]): string {
   if (!f) return "";
   return Object.values(f)
@@ -124,9 +193,11 @@ function travelerSearchText(t: AssociatedTraveler): string {
     companionDisplayName(t),
     t.firstName,
     t.lastName,
+    companionRelationshipLabel(t.relationship),
     t.relationship,
     t.petNotes,
     flightSearchText(t.flight),
+    profileDetailFieldsSearchBlob(companionProfileDetailFields(t.flight)),
   ]
     .filter((s): s is string => typeof s === "string" && s.trim() !== "")
     .join(" ");
@@ -149,13 +220,13 @@ function paymentCardSearchBlob(cards: CreditCard[]): string {
 function groupMatchesSearch(
   group: TravelerGroup,
   primaryClientName: string,
-  primaryBookingRows: FlightBookingCardRow[],
+  primaryBookingRows: CompanionProfileDetailField[],
   clientCreditCards: CreditCard[],
   needle: string,
 ): boolean {
   const q = needle.trim().toLowerCase();
   if (!q) return true;
-  const bookingBlob = primaryBookingRows.map((r) => `${r.label} ${r.value}`).join(" ");
+  const bookingBlob = profileDetailFieldsSearchBlob(primaryBookingRows);
   const primaryBlob = travelerGroupIncludesPrimary(group)
     ? [primaryClientName, bookingBlob].join(" ")
     : "";
@@ -195,7 +266,7 @@ export function AssociatedTravelersSection({
   /** When included in a group, shown first with booking-ready fields from the Details tab. */
   primaryClientName: string;
   /** Booking-ready rows for the primary (profile + `client.flight` + airline loyalty programs). */
-  primaryBookingRows: FlightBookingCardRow[];
+  primaryBookingRows: CompanionProfileDetailField[];
   /** Switches to the client Details tab (profile, cards, contact, etc.). */
   onOpenPrimaryClientProfile: () => void;
   /** Cards on the client profile used to resolve `TravelerGroup.paymentCardIds` for this household. */
@@ -406,7 +477,7 @@ export function AssociatedTravelersSection({
             }
           >
             <InlineSectionEmptyBox>
-              <p className="px-4 py-3.5 text-[14px] leading-snug text-fora-muted">
+              <p className="py-3.5 pl-0 pr-4 text-[14px] leading-snug text-fora-muted">
                 Add people or pets with their booking details
               </p>
             </InlineSectionEmptyBox>
@@ -441,139 +512,123 @@ export function AssociatedTravelersSection({
             >
               <ul className="list-none space-y-2.5">
                 {travelerGroupIncludesPrimary(group) ? (
-                <li className={cn(ROW_CARD, "list-none")}>
-                  <div
-                    className={cn(
-                      "mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
-                      placardAvatarClass(primaryClientName),
-                    )}
-                    aria-hidden
-                  >
-                    {placardInitials(primaryClientName)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold leading-tight text-fora-navy">
-                      {primaryClientName}
-                      <span className={ROLE_BADGE_CLASS}>Primary</span>
-                    </p>
-                    <FlightBookingCardDetails
-                      rows={primaryBookingRows}
-                      emptyHint="Add a birthday on Details, contact and airline loyalty on the profile, or traveler IDs (passport, gender, KTN) on the client record to show fields here."
-                    />
-                  </div>
-                  <Menu.Root>
-                    <Menu.Trigger
-                      type="button"
-                      className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
-                      aria-label={`More options for ${primaryClientName}`}
-                    >
-                      <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
-                    </Menu.Trigger>
-                    <Menu.Portal>
-                      <Menu.Positioner sideOffset={6} align="end">
-                        <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
-                          <Menu.Item
-                            className={menuItemClass}
-                            onClick={() => onOpenPrimaryClientProfile()}
-                          >
-                            <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                            View profile details
-                          </Menu.Item>
-                        </Menu.Popup>
-                      </Menu.Positioner>
-                    </Menu.Portal>
-                  </Menu.Root>
-                </li>
+                  <TravelerProfileCard
+                    ariaLabel={primaryClientName}
+                    fields={primaryBookingRows}
+                    emptyHint="Add a birthday on Details, contact and airline loyalty on the profile, or traveler IDs (passport, gender, KTN) on the client record to show fields here."
+                    menuItems={
+                      <Menu.Item
+                        className={menuItemClass}
+                        onClick={() => onOpenPrimaryClientProfile()}
+                      >
+                        <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                        View profile details
+                      </Menu.Item>
+                    }
+                    header={
+                      <>
+                        <div
+                          className={cn(
+                            "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                            placardAvatarClass(primaryClientName),
+                          )}
+                          aria-hidden
+                        >
+                          {placardInitials(primaryClientName)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[15px] font-semibold leading-tight tracking-[-0.01em] text-fora-navy">
+                            {primaryClientName}
+                            <span className={ROLE_BADGE_CLASS}>Primary</span>
+                          </p>
+                        </div>
+                      </>
+                    }
+                  />
                 ) : null}
 
                 {group.travelers.length > 0
                   ? group.travelers.map((t) => {
-                    const bookingRows = companionFlightBookingCardRows(t.flight);
+                    const profileFields = companionProfileDetailFields(t.flight);
+                    const relationshipLabel = companionRelationshipLabel(t.relationship);
                     return (
-                      <li key={t.id} className={cn(ROW_CARD, "list-none")}>
-                        <div
-                          className={cn(
-                            "mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
-                            placardAvatarClass(companionRowKey(t)),
-                          )}
-                          aria-hidden
-                        >
-                          {companionInitials(t)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-semibold leading-tight text-fora-navy">
-                            {t.companionKind === "pet" ? (
-                              <>
-                                {t.firstName}
-                                <span className={ROLE_BADGE_CLASS}>Pet</span>
-                                {t.lastName?.trim() ? (
-                                  <span className={ROLE_BADGE_CLASS}>{t.lastName.trim()}</span>
-                                ) : null}
-                                {t.relationship?.trim() ? (
-                                  <span className={ROLE_BADGE_CLASS}>{t.relationship.trim()}</span>
-                                ) : null}
-                              </>
-                            ) : (
-                              <>
-                                {t.firstName} {t.lastName}
-                                {t.relationship?.trim() ? (
-                                  <span className={ROLE_BADGE_CLASS}>{t.relationship.trim()}</span>
-                                ) : null}
-                              </>
-                            )}
-                          </p>
-                          {t.linkedClientId && t.companionKind !== "pet" ? (
-                            <p className="mt-1 text-[11px] leading-snug text-fora-muted">
-                              Linked profile:{" "}
-                              <Link
-                                href={`/clients/${t.linkedClientId}`}
-                                className="text-fora-link underline-offset-2 hover:underline"
-                              >
-                                {linkedProfileLabelById.get(t.linkedClientId) ?? "View profile"}
-                              </Link>
-                            </p>
-                          ) : null}
-                          <FlightBookingCardDetails
-                            rows={bookingRows}
-                            emptyHint="No traveler IDs on file. Use “Edit for booking” to add DOB, gender, passport, contact, and Known Traveler Number."
-                          />
-                        </div>
-                        <Menu.Root>
-                          <Menu.Trigger
-                            type="button"
-                            className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
-                            aria-label={`More options for ${companionDisplayName(t)}`}
-                          >
-                            <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
-                          </Menu.Trigger>
-                          <Menu.Portal>
-                            <Menu.Positioner sideOffset={6} align="end">
-                              <Menu.Popup className="z-50 min-w-[180px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
-                                <Menu.Item
-                                  className={menuItemClass}
-                                  onClick={() => openEditTraveler(group.id, t)}
-                                >
-                                  <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                                  Edit for booking
-                                </Menu.Item>
-                                <Menu.Item
-                                  className={cn(menuItemClass, "text-fora-danger")}
-                                  onClick={() =>
-                                    setDeleteTraveler({
-                                      groupId: group.id,
-                                      travelerId: t.id,
-                                      displayName: companionDisplayName(t),
-                                    })
-                                  }
-                                >
-                                  <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
-                                  Remove
-                                </Menu.Item>
-                              </Menu.Popup>
-                            </Menu.Positioner>
-                          </Menu.Portal>
-                        </Menu.Root>
-                      </li>
+                      <TravelerProfileCard
+                        key={t.id}
+                        ariaLabel={companionDisplayName(t)}
+                        fields={profileFields}
+                        emptyHint='No traveler IDs on file. Use "Edit for booking" to add DOB, gender, passport, contact, and Known Traveler Number.'
+                        menuItems={
+                          <>
+                            <Menu.Item
+                              className={menuItemClass}
+                              onClick={() => openEditTraveler(group.id, t)}
+                            >
+                              <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                              Edit for booking
+                            </Menu.Item>
+                            <Menu.Item
+                              className={cn(menuItemClass, "text-fora-danger")}
+                              onClick={() =>
+                                setDeleteTraveler({
+                                  groupId: group.id,
+                                  travelerId: t.id,
+                                  displayName: companionDisplayName(t),
+                                })
+                              }
+                            >
+                              <Trash2 className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                              Remove
+                            </Menu.Item>
+                          </>
+                        }
+                        header={
+                          <>
+                            <div
+                              className={cn(
+                                "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                                placardAvatarClass(companionRowKey(t)),
+                              )}
+                              aria-hidden
+                            >
+                              {companionInitials(t)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[15px] font-semibold leading-tight tracking-[-0.01em] text-fora-navy">
+                                {t.companionKind === "pet" ? (
+                                  <>
+                                    {t.firstName}
+                                    <span className={ROLE_BADGE_CLASS}>Pet</span>
+                                    {t.lastName?.trim() ? (
+                                      <span className={ROLE_BADGE_CLASS}>{t.lastName.trim()}</span>
+                                    ) : null}
+                                    {relationshipLabel ? (
+                                      <span className={ROLE_BADGE_CLASS}>{relationshipLabel}</span>
+                                    ) : null}
+                                  </>
+                                ) : (
+                                  <>
+                                    {t.firstName} {t.lastName}
+                                    {relationshipLabel ? (
+                                      <span className={ROLE_BADGE_CLASS}>{relationshipLabel}</span>
+                                    ) : null}
+                                  </>
+                                )}
+                              </p>
+                              {t.linkedClientId && t.companionKind !== "pet" ? (
+                                <p className="mt-1 text-[11px] leading-snug text-fora-muted">
+                                  Linked profile:{" "}
+                                  <Link
+                                    href={`/clients/${t.linkedClientId}`}
+                                    className="text-fora-link underline-offset-2 hover:underline"
+                                  >
+                                    {linkedProfileLabelById.get(t.linkedClientId) ?? "View profile"}
+                                  </Link>
+                                </p>
+                              ) : null}
+                            </div>
+                          </>
+                        }
+                      />
                     );
                   })
                   : null}

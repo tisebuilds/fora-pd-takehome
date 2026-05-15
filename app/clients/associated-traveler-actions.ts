@@ -11,6 +11,7 @@ import {
   setTravelerGroupPaymentCardIds,
   updateTravelerInGroup,
 } from "@/lib/data";
+import type { CompanionRelationship } from "@/lib/companions";
 import type { CompanionKind, TravelerFlightBookingInfo } from "@/lib/types";
 
 export type TravelerMutationResult = { ok: true } | { ok: false; error: string };
@@ -102,7 +103,7 @@ export async function addTravelerToGroupAction(
   companionKind: CompanionKind | undefined,
   firstName: string,
   lastName: string,
-  relationship: string,
+  relationship: CompanionRelationship | "",
   petNotes: string,
   flight: TravelerFlightBookingInfo,
   linkedClientId: string | null | undefined,
@@ -111,7 +112,7 @@ export async function addTravelerToGroupAction(
     companionKind,
     firstName,
     lastName,
-    relationship,
+    relationship: relationship || undefined,
     petNotes,
     flight: normalizeFlight(flight),
     linkedClientId: linkedClientId?.trim() || null,
@@ -128,7 +129,7 @@ export async function saveTravelerInGroupAction(
   companionKind: CompanionKind | undefined,
   firstName: string,
   lastName: string,
-  relationship: string,
+  relationship: CompanionRelationship | "",
   petNotes: string,
   flight: TravelerFlightBookingInfo,
   linkedClientId: string | null | undefined,
@@ -137,7 +138,7 @@ export async function saveTravelerInGroupAction(
     companionKind,
     firstName,
     lastName,
-    relationship,
+    relationship: relationship || undefined,
     petNotes,
     flight: normalizeFlight(flight),
     linkedClientId: linkedClientId?.trim() || null,

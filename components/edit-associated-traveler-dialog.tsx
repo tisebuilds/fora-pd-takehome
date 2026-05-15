@@ -4,6 +4,12 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type Keyboard
 import { Dialog } from "@base-ui/react/dialog";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
+import {
+  COMPANION_RELATIONSHIPS,
+  COMPANION_RELATIONSHIP_LABELS,
+  isCompanionRelationship,
+  type CompanionRelationship,
+} from "@/lib/companions";
 import type {
   AssociatedTraveler,
   CompanionKind,
@@ -114,6 +120,43 @@ function parseLegalName(raw: string): { ok: true; firstName: string; lastName: s
   return { ok: true, firstName: parts[0]!, lastName: parts.slice(1).join(" ") };
 }
 
+function RelationshipSelect({
+  id,
+  value,
+  onChange,
+  required,
+}: {
+  id: string;
+  value: CompanionRelationship | "";
+  onChange: (next: CompanionRelationship | "") => void;
+  required?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-normal text-fora-muted">
+        Relationship
+        {!required ? <span className="text-fora-muted"> (optional)</span> : null}
+      </Label>
+      <Select
+        modal={false}
+        value={value || null}
+        onValueChange={(next) => onChange((next ?? "") as CompanionRelationship | "")}
+      >
+        <SelectTrigger id={id} className={SELECT_TRIGGER}>
+          <SelectValue placeholder="Select relationship" />
+        </SelectTrigger>
+        <SelectContent>
+          {COMPANION_RELATIONSHIPS.map((rel) => (
+            <SelectItem key={rel} value={rel}>
+              {COMPANION_RELATIONSHIP_LABELS[rel]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 function DateField({
   id,
   label,
@@ -189,7 +232,9 @@ function AssociatedTravelerForm({
   const [petTypeCustom, setPetTypeCustom] = useState(() => initialPetTypeCustom(traveler));
   const [legalName, setLegalName] = useState(() => initialPersonNameInput(traveler, companionLinkableClients));
   const [firstName, setFirstName] = useState(traveler?.firstName ?? "");
-  const [relationship, setRelationship] = useState(traveler?.relationship ?? "");
+  const [relationship, setRelationship] = useState<CompanionRelationship | "">(
+    () => traveler?.relationship ?? "",
+  );
   const [petNotes, setPetNotes] = useState(traveler?.petNotes ?? "");
   const [flight, setFlight] = useState<TravelerFlightBookingInfo>(() => flightFromTraveler(traveler));
   const [pending, setPending] = useState(false);
@@ -243,6 +288,7 @@ function AssociatedTravelerForm({
     setLinkedClientId(row.id);
     setLegalName(row.displayName);
     setFlight({ ...row.flight });
+    setRelationship((prev) => prev || "sub-client");
     setLinkListOpen(false);
     highlightedIndexRef.current = 0;
     setHighlightedIndex(0);
@@ -369,6 +415,14 @@ function AssociatedTravelerForm({
             return;
           }
 
+          if (companionKind === "person" && (!relationship || !isCompanionRelationship(relationship))) {
+            toast.error("Please choose a relationship.");
+            return;
+          }
+
+          const relationshipPayload =
+            relationship && isCompanionRelationship(relationship) ? relationship : undefined;
+
           const notesPayload = companionKind === "pet" ? petNotes : "";
           const linkPayload = companionKind === "pet" ? null : linkedClientId;
           setPending(true);
@@ -381,7 +435,7 @@ function AssociatedTravelerForm({
                 ck,
                 fn,
                 ln,
-                relationship,
+                relationshipPayload ?? "",
                 notesPayload,
                 flight,
                 linkPayload,
@@ -403,7 +457,7 @@ function AssociatedTravelerForm({
                 ck,
                 fn,
                 ln,
-                relationship,
+                relationshipPayload ?? "",
                 notesPayload,
                 flight,
                 linkPayload,
@@ -478,19 +532,11 @@ function AssociatedTravelerForm({
                   />
                 </div>
               ) : null}
-              <div className="space-y-1.5">
-                <Label htmlFor={`${reactId}-rel-pet`} className="text-sm font-normal text-fora-muted">
-                  Relationship
-                </Label>
-                <Input
-                  id={`${reactId}-rel-pet`}
-                  value={relationship}
-                  onChange={(e) => setRelationship(e.target.value)}
-                  className={FIELD}
-                  placeholder="e.g. Family dog"
-                  autoComplete="off"
-                />
-              </div>
+              <RelationshipSelect
+                id={`${reactId}-rel-pet`}
+                value={relationship}
+                onChange={setRelationship}
+              />
               <div className="space-y-1.5">
                 <Label htmlFor={`${reactId}-pet-notes`} className="text-sm font-normal text-fora-muted">
                   Notes
@@ -577,19 +623,12 @@ function AssociatedTravelerForm({
                 ) : null}
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor={`${reactId}-rel`} className="text-sm font-normal text-fora-muted">
-                  Relationship
-                </Label>
-                <Input
-                  id={`${reactId}-rel`}
-                  value={relationship}
-                  onChange={(e) => setRelationship(e.target.value)}
-                  className={FIELD}
-                  placeholder="Spouse, child, colleague..."
-                  autoComplete="off"
-                />
-              </div>
+              <RelationshipSelect
+                id={`${reactId}-rel`}
+                value={relationship}
+                onChange={setRelationship}
+                required
+              />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <DateField

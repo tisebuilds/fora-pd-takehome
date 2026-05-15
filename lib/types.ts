@@ -1,3 +1,5 @@
+import type { CompanionRelationship } from "@/lib/companions";
+
 export type EmailType = "personal" | "work" | "other";
 export type PhoneType = "mobile" | "home" | "work" | "other";
 export type CardBrand = "visa" | "mastercard" | "amex";
@@ -93,7 +95,7 @@ export interface AssociatedTraveler {
   companionKind?: CompanionKind;
   firstName: string;
   lastName: string;
-  relationship?: string;
+  relationship?: CompanionRelationship;
   /** Care / travel notes for pets (carrier size, diet, etc.). Omit for human companions. */
   petNotes?: string;
   flight?: TravelerFlightBookingInfo;

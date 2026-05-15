@@ -11,6 +11,7 @@ import type {
   TravelerFlightBookingInfo,
   TravelerGroup,
 } from "@/lib/types";
+import { resolveTravelerRelationship, type CompanionRelationship } from "@/lib/companions";
 import { clientDisplayName, formatImportantDate, formatPhoneDisplay } from "@/lib/format";
 
 /**
@@ -107,7 +108,7 @@ const seedClients: Client[] = [
             id: "at-brad-1",
             firstName: "Nicole",
             lastName: "Andrews",
-            relationship: "Spouse",
+            relationship: "spouse",
             linkedClientId: "nicole-andrews",
             flight: {
               dateOfBirth: "1986-04-18",
@@ -235,7 +236,7 @@ const seedClients: Client[] = [
             id: "at-kb-1",
             firstName: "Jordan",
             lastName: "Barrett",
-            relationship: "Spouse",
+            relationship: "spouse",
             flight: {
               dateOfBirth: "1989-04-12",
               nationality: "US",
@@ -246,7 +247,7 @@ const seedClients: Client[] = [
             id: "at-kb-2",
             firstName: "Alex",
             lastName: "Barrett",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: { dateOfBirth: "2014-08-01", nationality: "US" },
           },
         ],
@@ -254,7 +255,15 @@ const seedClients: Client[] = [
       {
         id: "tg-kb-work",
         name: "Work trips",
-        travelers: [],
+        travelers: [
+          {
+            id: "at-kb-3",
+            firstName: "Sam",
+            lastName: "Ortiz",
+            relationship: "friend",
+            flight: { dateOfBirth: "1990-02-18", nationality: "US" },
+          },
+        ],
         includePrimaryClient: false,
       },
     ],
@@ -418,7 +427,7 @@ const seedClients: Client[] = [
             id: "at-sm-andrew",
             firstName: "Andrew",
             lastName: "Miller",
-            relationship: "Spouse (Grandpa)",
+            relationship: "grandparent-grandchild",
             flight: {
               dateOfBirth: "1944-06-12",
               gender: "Male",
@@ -439,7 +448,7 @@ const seedClients: Client[] = [
             id: "at-sm-lisa",
             firstName: "Lisa",
             lastName: "Miller",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: {
               dateOfBirth: "1978-03-15",
               gender: "Female",
@@ -452,7 +461,7 @@ const seedClients: Client[] = [
             id: "at-sm-cliff",
             firstName: "Cliff",
             lastName: "Nguyen",
-            relationship: "Spouse",
+            relationship: "spouse",
             flight: {
               dateOfBirth: "1976-11-02",
               gender: "Male",
@@ -463,14 +472,14 @@ const seedClients: Client[] = [
             id: "at-sm-bob",
             firstName: "Bob",
             lastName: "Nguyen",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: { dateOfBirth: "2019-07-22", gender: "Male", nationality: "US" },
           },
           {
             id: "at-sm-alice",
             firstName: "Alice",
             lastName: "Nguyen",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: { dateOfBirth: "2015-09-03", gender: "Female", nationality: "US" },
           },
         ],
@@ -485,7 +494,7 @@ const seedClients: Client[] = [
             id: "at-sm-matt",
             firstName: "Matt",
             lastName: "Miller",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: {
               dateOfBirth: "1981-12-08",
               gender: "Male",
@@ -497,14 +506,14 @@ const seedClients: Client[] = [
             id: "at-sm-cody",
             firstName: "Cody",
             lastName: "Ruiz",
-            relationship: "Spouse",
+            relationship: "spouse",
             flight: { dateOfBirth: "1983-05-30", gender: "Non-binary", nationality: "US" },
           },
           {
             id: "at-sm-avery",
             firstName: "Avery",
             lastName: "Miller",
-            relationship: "Child",
+            relationship: "parent-child",
             flight: { dateOfBirth: "2017-02-14", gender: "Female", nationality: "US" },
           },
           {
@@ -512,7 +521,7 @@ const seedClients: Client[] = [
             companionKind: "pet",
             firstName: "Spot",
             lastName: "Dog",
-            relationship: "Family dog",
+            relationship: "general-family",
             petNotes: "Crate trained; bring water bowl.",
           },
         ],
@@ -562,6 +571,27 @@ const seedClients: Client[] = [
     bookingsCount: 9,
     commissionableValue: 35600,
     commissions: 2490,
+    travelerGroups: [
+      {
+        id: "tg-jr-team",
+        name: "Team travel",
+        includePrimaryClient: false,
+        travelers: [
+          {
+            id: "at-jr-1",
+            firstName: "Brad",
+            lastName: "Andrews",
+            relationship: "sub-client",
+            linkedClientId: "brad-andrews",
+            flight: {
+              dateOfBirth: "1985-03-12",
+              nationality: "US",
+              email: "bradandrews@gmail.com",
+            },
+          },
+        ],
+      },
+    ],
   },
 ];
 
@@ -994,8 +1024,9 @@ export function deleteTravelerGroup(
 
 export type TravelerUpsertPayload = Pick<
   AssociatedTraveler,
-  "firstName" | "lastName" | "relationship" | "companionKind" | "petNotes"
+  "firstName" | "lastName" | "companionKind" | "petNotes"
 > & {
+  relationship?: CompanionRelationship;
   flight?: TravelerFlightBookingInfo;
   /** Empty / null / undefined = no link. */
   linkedClientId?: string | null;
@@ -1028,12 +1059,14 @@ export function addTravelerToGroup(
   const petNotesTrim = data.petNotes?.trim();
   const linkRes = resolveTravelerLinkedClientId(clientId, data.companionKind, data.linkedClientId);
   if (!linkRes.ok) return linkRes;
+  const relRes = resolveTravelerRelationship(data.companionKind, data.relationship);
+  if (!relRes.ok) return relRes;
   group.travelers.push({
     id: travelerId,
     ...(companionKind ? { companionKind } : {}),
     firstName,
     lastName,
-    relationship: data.relationship?.trim() || undefined,
+    ...(relRes.relationship ? { relationship: relRes.relationship } : {}),
     ...(companionKind && petNotesTrim ? { petNotes: petNotesTrim } : {}),
     ...(linkRes.linkedClientId ? { linkedClientId: linkRes.linkedClientId } : {}),
     flight,
@@ -1058,6 +1091,8 @@ export function updateTravelerInGroup(
   if (!firstName || !lastName) return { ok: false, error: "Name is required." };
   const linkRes = resolveTravelerLinkedClientId(clientId, data.companionKind, data.linkedClientId);
   if (!linkRes.ok) return linkRes;
+  const relRes = resolveTravelerRelationship(data.companionKind, data.relationship);
+  if (!relRes.ok) return relRes;
   if (data.companionKind === "pet") {
     t.companionKind = "pet";
     const petNotesTrim = data.petNotes?.trim();
@@ -1072,7 +1107,8 @@ export function updateTravelerInGroup(
   }
   t.firstName = firstName;
   t.lastName = lastName;
-  t.relationship = data.relationship?.trim() || undefined;
+  if (relRes.relationship) t.relationship = relRes.relationship;
+  else delete t.relationship;
   t.flight = data.flight ? compactFlightFields(data.flight) : undefined;
   return { ok: true };
 }

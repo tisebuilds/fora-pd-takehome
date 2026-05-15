@@ -5,6 +5,9 @@ import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/** Left inset for section headers and row icons (matches collapse chevron). */
+export const detailSectionIconGutterClass = "pl-1.5";
+
 export function DetailSection({
   title,
   action,
@@ -52,11 +55,16 @@ export function DetailSection({
           open ? "pb-4" : "pb-0",
         )}
       >
-        <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-md p-1 transition-colors hover:bg-fora-app/60 sm:gap-3">
+        <div
+          className={cn(
+            "flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-md py-1 pr-1 transition-colors hover:bg-fora-app/60 sm:gap-3",
+            detailSectionIconGutterClass,
+          )}
+        >
           <button
             type="button"
             onClick={toggle}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-0.5 pl-0.5 pr-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-0.5 pr-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
             aria-expanded={open}
             aria-controls={contentId}
           >
@@ -82,7 +90,11 @@ export function DetailSection({
       >
         <div
           id={contentId}
-          className={cn("min-h-0 overflow-hidden", !open && "max-h-0")}
+          className={cn(
+            "min-h-0 overflow-hidden",
+            detailSectionIconGutterClass,
+            !open && "max-h-0",
+          )}
           inert={open ? undefined : true}
         >
           {children}

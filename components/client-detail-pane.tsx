@@ -4,7 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Copy, CreditCard, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Cake,
+  Copy,
+  CreditCard,
+  Heart,
+  Mail,
+  MapPin,
+  MoreHorizontal,
+  Pencil,
+  Phone,
+  Trash2,
+  User,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
 import type {
@@ -20,7 +33,7 @@ import {
   formatCityState,
   formatImportantDate,
   formatPhoneDisplay,
-  primaryClientFlightBookingCardRows,
+  primaryClientProfileDetailFields,
 } from "@/lib/format";
 import { Flag } from "@/components/flag";
 import { StatsStrip } from "@/components/stats-strip";
@@ -137,11 +150,26 @@ function CopyFieldButton({
   );
 }
 
-function FieldRow({ label, value }: { label: string; value: ReactNode }) {
+function PersonalInfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+}) {
   return (
-    <div className="grid grid-cols-[140px_1fr] items-start gap-x-6 gap-y-0 border-b border-fora-border py-3 last:border-b-0">
-      <p className="text-[13px] text-fora-muted">{label}</p>
-      <div className="text-[14px] text-fora-navy">{value}</div>
+    <div className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0">
+      <Icon
+        className="mt-0.5 size-4 shrink-0 text-fora-muted"
+        strokeWidth={1.75}
+        aria-hidden
+      />
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,9.5rem)_1fr] items-start gap-x-6 gap-y-1 sm:grid-cols-[minmax(0,10.5rem)_1fr] sm:gap-x-10">
+        <p className="text-[13px] leading-5 text-fora-muted">{label}</p>
+        <div className="min-w-0 text-[14px] leading-5 text-fora-navy">{value}</div>
+      </div>
     </div>
   );
 }
@@ -162,12 +190,12 @@ function addressCityStateCountryLine(a: ClientAddress): string {
 }
 
 function ImportantDateRow({
+  icon: Icon,
   label,
-  emoji,
   date,
 }: {
+  icon: LucideIcon;
   label: string;
-  emoji: string;
   date: ImportantDate | undefined;
 }) {
   const formatted = date ? formatImportantDate(date.month, date.day, date.year) : null;
@@ -177,24 +205,29 @@ function ImportantDateRow({
       : null;
 
   return (
-    <div className="flex items-center gap-3.5 py-4">
-      <div
-        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#FFF9EB] text-[22px] leading-none"
+    <div className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0">
+      <Icon
+        className="mt-0.5 size-4 shrink-0 text-fora-muted"
+        strokeWidth={1.75}
         aria-hidden
-      >
-        {emoji}
+      />
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,9.5rem)_1fr] items-start gap-x-6 gap-y-1 sm:grid-cols-[minmax(0,10.5rem)_1fr] sm:gap-x-10">
+        <p className="text-[13px] leading-5 text-fora-muted">{label}</p>
+        <div className="min-w-0 text-[14px] leading-5 text-fora-navy">
+          {formatted ? (
+            <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-2">
+              <span className="min-w-0 shrink">{formatted}</span>
+              {countdown ? (
+                <span className="shrink-0 whitespace-nowrap rounded-full bg-[#F3F4F6] px-2.5 py-1 text-[12px] font-medium leading-none text-[#374151]">
+                  {countdown}
+                </span>
+              ) : null}
+            </span>
+          ) : (
+            <NotProvided />
+          )}
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[12px] font-normal leading-tight text-fora-muted">{label}</p>
-        <p className="mt-0.5 text-[15px] font-semibold leading-tight tracking-[-0.01em] text-fora-navy">
-          {formatted ?? "-"}
-        </p>
-      </div>
-      {countdown ? (
-        <span className="shrink-0 whitespace-nowrap rounded-full bg-[#F3F4F6] px-2.5 py-1.5 text-[12px] font-medium leading-none text-[#374151]">
-          {countdown}
-        </span>
-      ) : null}
     </div>
   );
 }
@@ -458,8 +491,9 @@ export function ClientDetailPane({
               </Link>
             }
           >
-            <div>
-              <FieldRow
+            <div className="flex flex-col">
+              <PersonalInfoRow
+                icon={User}
                 label="First name"
                 value={
                   client.firstName.trim() ? (
@@ -477,7 +511,8 @@ export function ClientDetailPane({
                   )
                 }
               />
-              <FieldRow
+              <PersonalInfoRow
+                icon={User}
                 label="Last name"
                 value={
                   client.lastName.trim() ? (
@@ -495,14 +530,15 @@ export function ClientDetailPane({
                   )
                 }
               />
-              <FieldRow
+              <PersonalInfoRow
+                icon={Mail}
                 label="Personal email"
                 value={
                   email ? (
                     <span className="inline-flex max-w-full min-w-0 items-center gap-2">
                       <a
                         href={`mailto:${email.address}`}
-                        className="min-w-0 shrink truncate text-[14px] text-fora-link no-underline hover:opacity-80"
+                        className="min-w-0 shrink truncate text-[14px] text-fora-navy underline-offset-2 hover:underline"
                       >
                         {email.address}
                       </a>
@@ -518,7 +554,8 @@ export function ClientDetailPane({
                   )
                 }
               />
-              <FieldRow
+              <PersonalInfoRow
+                icon={Phone}
                 label="Mobile number"
                 value={
                   mobile && formatPhoneDisplay(mobile) ? (
@@ -539,7 +576,8 @@ export function ClientDetailPane({
                   )
                 }
               />
-              <FieldRow
+              <PersonalInfoRow
+                icon={MapPin}
                 label="Address"
                 value={
                   !address ? (
@@ -601,14 +639,14 @@ export function ClientDetailPane({
               </button>
             }
           >
-            <div className="divide-y divide-[#EEEEEE]">
+            <div className="flex flex-col">
               {birthday &&
               formatImportantDate(birthday.month, birthday.day, birthday.year) ? (
-                <ImportantDateRow label="Birthday" emoji="🎂" date={birthday} />
+                <ImportantDateRow icon={Cake} label="Birthday" date={birthday} />
               ) : null}
               {anniversary &&
               formatImportantDate(anniversary.month, anniversary.day, anniversary.year) ? (
-                <ImportantDateRow label="Anniversary" emoji="💛" date={anniversary} />
+                <ImportantDateRow icon={Heart} label="Anniversary" date={anniversary} />
               ) : null}
             </div>
             <AddImportantDateDialog open={addImportantDateOpen} onOpenChange={setAddImportantDateOpen} />
@@ -710,7 +748,7 @@ export function ClientDetailPane({
                 {client.loyaltyPrograms.map((lp) => (
                   <li
                     key={lp.id}
-                    className="flex items-center gap-3 rounded-[14px] border border-fora-border bg-white px-4 py-3.5"
+                    className="flex items-center gap-3 rounded-[14px] border border-fora-border bg-white py-3.5 pl-4 pr-4"
                   >
                     <div
                       className={cn(
@@ -808,7 +846,7 @@ export function ClientDetailPane({
               groups={getTravelerGroupsForDisplay(client)}
               onRefresh={refreshAfterLoyaltyChange}
               primaryClientName={clientDisplayName(client)}
-              primaryBookingRows={primaryClientFlightBookingCardRows(client)}
+              primaryBookingRows={primaryClientProfileDetailFields(client)}
               onOpenPrimaryClientProfile={() => setDetailTab("details")}
               clientCreditCards={client.creditCards}
               clientBillingAddress={client.addresses[0] ?? null}

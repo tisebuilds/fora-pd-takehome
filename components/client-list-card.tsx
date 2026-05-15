@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, UserRound, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
+import { companionRelationshipLabel } from "@/lib/companions";
 import type { AssociatedTraveler, Client, ClientPhone } from "@/lib/types";
 import { clientDisplayName, clientInitials, formatPhoneDisplay } from "@/lib/format";
 import { getTravelerGroupsForDisplay } from "@/lib/data";
@@ -53,9 +54,7 @@ function companionInlineInitials(t: AssociatedTraveler): string {
 }
 
 function companionInlineRelationship(t: AssociatedTraveler): string | null {
-  if (t.companionKind === "pet") return null;
-  const rel = t.relationship?.trim();
-  return rel && rel.length > 0 ? rel : null;
+  return companionRelationshipLabel(t.relationship);
 }
 
 function companionInlinePetNotes(t: AssociatedTraveler): string | null {
@@ -372,7 +371,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                 </button>
               </InlineSectionEmptyBox>
             ) : (
-              <div className="mt-2 flex flex-col divide-y divide-[#E5E7EB] rounded-lg border border-[#E5E7EB] bg-[#FAFAFA]">
+              <div className="mt-2 flex flex-col gap-2">
                 {client.creditCards.map((c) => (
                   <CreditCardRow
                     key={c.id}
