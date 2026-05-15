@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { toast } from "sonner";
-import { companionRelationshipLabel } from "@/lib/companions";
+import { companionRelationshipLabel, petSpeciesDisplayLabel } from "@/lib/companions";
 import type { AssociatedTraveler, ClientAddress, CompanionLinkableClient, CreditCard, TravelerGroup } from "@/lib/types";
 import {
   companionProfileDetailFields,
@@ -48,9 +48,13 @@ const NO_GROUP_PAYMENT_IDS: string[] = [];
 const ROW_CARD =
   "rounded-[14px] border border-fora-border bg-white py-4 pl-5 pr-5";
 
-/** Matches the “Primary” label on the primary client row; also used for relationship / pet role. */
+/** Matches the “Primary” label on the primary client row and human relationship chips. */
 const ROLE_BADGE_CLASS =
   "ml-2 align-middle text-[10px] font-semibold uppercase tracking-[0.06em] text-fora-muted";
+
+/** Pet species next to the animal’s name (sentence case; not all-caps role badges). */
+const PET_SPECIES_BADGE_CLASS =
+  "ml-2 align-middle text-[11px] font-medium tracking-normal text-fora-muted";
 
 const CARD_INTERACTIVE_SELECTOR = "button, a, [role='menuitem'], input, textarea, select";
 
@@ -59,29 +63,29 @@ function TravelerProfileCard({
   header,
   menuItems,
   fields,
-  emptyHint,
 }: {
   ariaLabel: string;
   header: ReactNode;
   menuItems: ReactNode;
   fields: CompanionProfileDetailField[];
-  emptyHint: string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const detailsId = useId();
+  const hasBookingDetails = fields.length > 0;
 
   const toggleExpanded = () => setExpanded((open) => !open);
 
   const handleCardClick = (event: MouseEvent<HTMLLIElement>) => {
+    if (!hasBookingDetails) return;
     if ((event.target as HTMLElement).closest(CARD_INTERACTIVE_SELECTOR)) return;
     toggleExpanded();
   };
 
   return (
     <li
-      className={cn(ROW_CARD, "list-none cursor-pointer")}
+      className={cn(ROW_CARD, "list-none", hasBookingDetails && "cursor-pointer")}
       onClick={handleCardClick}
-      aria-expanded={expanded}
+      aria-expanded={hasBookingDetails ? expanded : undefined}
     >
       <div className="flex items-center gap-3">
         {header}
@@ -98,38 +102,42 @@ function TravelerProfileCard({
               <Menu.Positioner sideOffset={6} align="end">
                 <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                   {menuItems}
-                  <Menu.Item
-                    className={menuItemClass}
-                    onClick={() => setExpanded((open) => !open)}
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "size-3.5 shrink-0 opacity-70 transition-transform duration-200",
-                        expanded && "-rotate-180",
-                      )}
-                      strokeWidth={2}
-                      aria-hidden
-                    />
-                    {expanded ? "Collapse" : "Expand"}
-                  </Menu.Item>
+                  {hasBookingDetails ? (
+                    <Menu.Item
+                      className={menuItemClass}
+                      onClick={() => setExpanded((open) => !open)}
+                    >
+                      <ChevronDown
+                        className={cn(
+                          "size-3.5 shrink-0 opacity-70 transition-transform duration-200",
+                          expanded && "-rotate-180",
+                        )}
+                        strokeWidth={2}
+                        aria-hidden
+                      />
+                      {expanded ? "Collapse" : "Expand"}
+                    </Menu.Item>
+                  ) : null}
                 </Menu.Popup>
               </Menu.Positioner>
             </Menu.Portal>
           </Menu.Root>
         </div>
       </div>
-      <div
-        id={detailsId}
-        className={cn(
-          "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-        )}
-        aria-hidden={!expanded}
-      >
-        <div className="min-h-0 overflow-hidden">
-          <CompanionProfileDetails fields={fields} emptyHint={emptyHint} />
+      {hasBookingDetails ? (
+        <div
+          id={detailsId}
+          className={cn(
+            "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+            expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+          aria-hidden={!expanded}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <CompanionProfileDetails fields={fields} />
+          </div>
         </div>
-      </div>
+      ) : null}
     </li>
   );
 }
@@ -165,7 +173,7 @@ function placardAvatarClass(key: string): string {
 }
 
 function companionDisplayName(t: AssociatedTraveler): string {
-  if (t.companionKind === "pet") return `${t.firstName} (${t.lastName})`;
+  if (t.companionKind === "pet") return `${t.firstName} (${petSpeciesDisplayLabel(t.lastName)})`;
   return `${t.firstName} ${t.lastName}`;
 }
 
@@ -515,7 +523,6 @@ export function AssociatedTravelersSection({
                   <TravelerProfileCard
                     ariaLabel={primaryClientName}
                     fields={primaryBookingRows}
-                    emptyHint="Add a birthday on Details, contact and airline loyalty on the profile, or traveler IDs (passport, gender, KTN) on the client record to show fields here."
                     menuItems={
                       <Menu.Item
                         className={menuItemClass}
@@ -556,7 +563,6 @@ export function AssociatedTravelersSection({
                         key={t.id}
                         ariaLabel={companionDisplayName(t)}
                         fields={profileFields}
-                        emptyHint='No traveler IDs on file. Use "Edit for booking" to add DOB, gender, passport, contact, and Known Traveler Number.'
                         menuItems={
                           <>
                             <Menu.Item
@@ -597,13 +603,9 @@ export function AssociatedTravelersSection({
                                 {t.companionKind === "pet" ? (
                                   <>
                                     {t.firstName}
-                                    <span className={ROLE_BADGE_CLASS}>Pet</span>
-                                    {t.lastName?.trim() ? (
-                                      <span className={ROLE_BADGE_CLASS}>{t.lastName.trim()}</span>
-                                    ) : null}
-                                    {relationshipLabel ? (
-                                      <span className={ROLE_BADGE_CLASS}>{relationshipLabel}</span>
-                                    ) : null}
+                                    <span className={PET_SPECIES_BADGE_CLASS}>
+                                      {petSpeciesDisplayLabel(t.lastName)}
+                                    </span>
                                   </>
                                 ) : (
                                   <>

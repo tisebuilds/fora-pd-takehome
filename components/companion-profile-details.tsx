@@ -55,13 +55,11 @@ function PassportValidityBadge({ expiry }: { expiry: string }) {
 
 export function CompanionProfileDetails({
   fields,
-  emptyHint,
 }: {
   fields: CompanionProfileDetailField[];
-  emptyHint: string;
 }) {
   if (fields.length === 0) {
-    return <p className="mt-3 text-[13px] leading-snug text-fora-muted">{emptyHint}</p>;
+    return null;
   }
 
   return (

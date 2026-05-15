@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, UserRound, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
-import { companionRelationshipLabel } from "@/lib/companions";
+import { companionRelationshipLabel, petSpeciesDisplayLabel } from "@/lib/companions";
 import type { AssociatedTraveler, Client, ClientPhone } from "@/lib/types";
 import { clientDisplayName, clientInitials, formatPhoneDisplay } from "@/lib/format";
 import { getTravelerGroupsForDisplay } from "@/lib/data";
@@ -41,7 +41,7 @@ function phoneToTelHref(p: ClientPhone): string | null {
 }
 
 function companionInlineName(t: AssociatedTraveler): string {
-  if (t.companionKind === "pet") return `${t.firstName} (${t.lastName})`;
+  if (t.companionKind === "pet") return t.firstName;
   return `${t.firstName} ${t.lastName}`;
 }
 
@@ -54,6 +54,7 @@ function companionInlineInitials(t: AssociatedTraveler): string {
 }
 
 function companionInlineRelationship(t: AssociatedTraveler): string | null {
+  if (t.companionKind === "pet") return null;
   return companionRelationshipLabel(t.relationship);
 }
 
@@ -310,7 +311,11 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                                 <span className="min-w-0 truncate text-[13px] font-semibold text-[#111827]">
                                   {companionInlineName(t)}
                                 </span>
-                                {relationship ? (
+                                {t.companionKind === "pet" ? (
+                                  <span className="shrink-0 text-[12px] leading-snug text-[#6B7280]">
+                                    {petSpeciesDisplayLabel(t.lastName)}
+                                  </span>
+                                ) : relationship ? (
                                   <span className="shrink-0 text-[12px] leading-snug text-[#6B7280]">
                                     {relationship}
                                   </span>

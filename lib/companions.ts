@@ -2,8 +2,10 @@ import type { CompanionKind } from "@/lib/types";
 
 /** Canonical companion relationship values (brief + extended set). Linked profiles use `linkedClientId`. */
 export const COMPANION_RELATIONSHIPS = [
-  "parent-child",
-  "grandparent-grandchild",
+  "parent",
+  "child",
+  "grandparent",
+  "grandchild",
   "spouse",
   "friend",
   "general-family",
@@ -13,7 +15,6 @@ export const COMPANION_RELATIONSHIPS = [
   "sibling",
   "partner-unmarried",
   "in-law",
-  "pet",
   "caregiver-guardian",
   "colleague",
 ] as const;
@@ -21,8 +22,10 @@ export const COMPANION_RELATIONSHIPS = [
 export type CompanionRelationship = (typeof COMPANION_RELATIONSHIPS)[number];
 
 export const COMPANION_RELATIONSHIP_LABELS: Record<CompanionRelationship, string> = {
-  "parent-child": "Parent, child",
-  "grandparent-grandchild": "Grandparent, grandchild",
+  parent: "Parent",
+  child: "Child",
+  grandparent: "Grandparent",
+  grandchild: "Grandchild",
   spouse: "Spouse",
   friend: "Friend",
   "general-family": "General family",
@@ -32,25 +35,18 @@ export const COMPANION_RELATIONSHIP_LABELS: Record<CompanionRelationship, string
   sibling: "Sibling",
   "partner-unmarried": "Partner, unmarried",
   "in-law": "In-law",
-  pet: "Pet",
   "caregiver-guardian": "Caregiver, guardian",
   colleague: "Colleague",
 };
 
 const LEGACY_RELATIONSHIP_MAP: Record<string, CompanionRelationship> = {
   spouse: "spouse",
-  child: "parent-child",
-  parent: "parent-child",
-  "parent-child": "parent-child",
-  "parent / child": "parent-child",
-  "parent, child": "parent-child",
-  grandparent: "grandparent-grandchild",
-  grandchild: "grandparent-grandchild",
-  "grandparent-grandchild": "grandparent-grandchild",
-  "grandparent / grandchild": "grandparent-grandchild",
-  "grandparent, grandchild": "grandparent-grandchild",
-  "spouse (grandpa)": "grandparent-grandchild",
-  "spouse (grandma)": "grandparent-grandchild",
+  child: "child",
+  parent: "parent",
+  grandparent: "grandparent",
+  grandchild: "grandchild",
+  "spouse (grandpa)": "grandparent",
+  "spouse (grandma)": "grandparent",
   friend: "friend",
   colleague: "colleague",
   coworker: "colleague",
@@ -78,7 +74,8 @@ const LEGACY_RELATIONSHIP_MAP: Record<string, CompanionRelationship> = {
   inlaw: "in-law",
   "mother-in-law": "in-law",
   "father-in-law": "in-law",
-  pet: "pet",
+  /** Removed from picker; map old saves to a neutral family bucket. */
+  pet: "general-family",
   "caregiver, guardian": "caregiver-guardian",
   "caregiver-guardian": "caregiver-guardian",
   caregiver: "caregiver-guardian",
@@ -94,6 +91,26 @@ export function companionRelationshipLabel(
 ): string | null {
   if (!relationship) return null;
   return COMPANION_RELATIONSHIP_LABELS[relationship];
+}
+
+/**
+ * Pet companions store species / type in `lastName` (Dog, Cat, or custom “other”).
+ * Known presets keep canonical casing; custom types are title-cased. Falls back to “Pet” only when
+ * type is missing (e.g. incomplete “other” edge case).
+ */
+export function petSpeciesDisplayLabel(lastName: string | undefined): string {
+  const raw = lastName?.trim() ?? "";
+  const lower = raw.toLowerCase();
+  if (lower === "dog") return "Dog";
+  if (lower === "cat") return "Cat";
+  if (raw.length > 0) {
+    return raw
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  }
+  return "Pet";
 }
 
 /** Maps legacy free-text seed values to canonical relationships. */

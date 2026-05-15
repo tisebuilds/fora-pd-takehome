@@ -280,6 +280,7 @@ function AssociatedTravelerForm({
     if (companionKind === "pet") {
       setLinkedClientId(null);
       setLinkListOpen(false);
+      setRelationship("");
     }
   }, [companionKind]);
 
@@ -421,7 +422,11 @@ function AssociatedTravelerForm({
           }
 
           const relationshipPayload =
-            relationship && isCompanionRelationship(relationship) ? relationship : undefined;
+            companionKind === "pet"
+              ? ""
+              : relationship && isCompanionRelationship(relationship)
+                ? relationship
+                : undefined;
 
           const notesPayload = companionKind === "pet" ? petNotes : "";
           const linkPayload = companionKind === "pet" ? null : linkedClientId;
@@ -532,11 +537,6 @@ function AssociatedTravelerForm({
                   />
                 </div>
               ) : null}
-              <RelationshipSelect
-                id={`${reactId}-rel-pet`}
-                value={relationship}
-                onChange={setRelationship}
-              />
               <div className="space-y-1.5">
                 <Label htmlFor={`${reactId}-pet-notes`} className="text-sm font-normal text-fora-muted">
                   Notes
