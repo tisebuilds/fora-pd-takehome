@@ -21,14 +21,14 @@ export function StatsStrip({
   return (
     <div
       className={cn(
-        "grid grid-cols-3 gap-4 rounded-[16px] bg-fora-app px-5 py-4 text-sm shadow-none ring-0",
+        "grid grid-cols-3 gap-4 rounded-md bg-fora-app px-5 py-4 text-sm shadow-none ring-0",
         className
       )}
     >
       <Link
         href={bookingsHref}
         className={cn(
-          "group min-w-0 rounded-md no-underline outline-none transition-colors",
+          "group min-w-0 rounded-sm no-underline outline-none transition-colors",
           "focus-visible:ring-2 focus-visible:ring-fora-link/40",
         )}
       >

@@ -57,10 +57,10 @@ const editLinkCls =
   "text-[13px] font-normal text-fora-link no-underline hover:opacity-80";
 
 const headerMoreMenuItemClass =
-  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] outline-none transition-colors data-highlighted:bg-fora-app";
+  "flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 text-[13px] outline-none transition-colors data-highlighted:bg-fora-app";
 
 const loyaltyRowMenuItemClass =
-  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
+  "flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
 function personalMobile(client: Client) {
   return client.phones.find((p) => p.type === "mobile") ?? client.phones[0];
@@ -114,7 +114,7 @@ function NotProvided() {
 }
 
 const copyFieldButtonClass =
-  "shrink-0 rounded p-1 text-fora-muted hover:bg-fora-app hover:text-fora-navy";
+  "shrink-0 rounded-sm p-1 text-fora-muted hover:bg-fora-app hover:text-fora-navy";
 
 function CopyFieldButton({
   text,
@@ -218,7 +218,7 @@ function ImportantDateRow({
             <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-2">
               <span className="min-w-0 shrink">{formatted}</span>
               {countdown ? (
-                <span className="shrink-0 whitespace-nowrap rounded-full bg-[#F3F4F6] px-2.5 py-1 text-[12px] font-medium leading-none text-[#374151]">
+                <span className="shrink-0 whitespace-nowrap rounded-md bg-[#F3F4F6] px-2.5 py-1 text-[12px] font-medium leading-none text-[#374151]">
                   {countdown}
                 </span>
               ) : null}
@@ -435,21 +435,21 @@ export function ClientDetailPane({
                   setDetailTab("details");
                   revealCreditCardsSection();
                 }}
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
                 aria-label="Show credit card details"
               >
                 <CreditCard className="size-4" strokeWidth={1.75} aria-hidden />
               </button>
               <Menu.Root>
                 <Menu.Trigger
-                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy"
                   aria-label="More actions"
                 >
                   <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
                 </Menu.Trigger>
                 <Menu.Portal>
                   <Menu.Positioner className="z-50" sideOffset={6} align="end">
-                    <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                    <Menu.Popup className="z-50 min-w-[200px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                       <Menu.Item
                         className={cn(headerMoreMenuItemClass, "font-normal text-fora-danger")}
                       >
@@ -748,11 +748,11 @@ export function ClientDetailPane({
                 {client.loyaltyPrograms.map((lp) => (
                   <li
                     key={lp.id}
-                    className="flex items-center gap-3 rounded-[14px] border border-fora-border bg-white py-3.5 pl-4 pr-4"
+                    className="flex items-center gap-3 rounded-md border border-fora-border bg-white py-3.5 pl-4 pr-4"
                   >
                     <div
                       className={cn(
-                        "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                        "flex size-12 shrink-0 items-center justify-center rounded-md text-[15px] font-bold leading-none tracking-tight",
                         loyaltyProgramAvatarClass(lp.programName),
                       )}
                       aria-hidden
@@ -770,14 +770,14 @@ export function ClientDetailPane({
                     <Menu.Root>
                       <Menu.Trigger
                         type="button"
-                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
                         aria-label={`More options for ${lp.programName}`}
                       >
                         <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
                       </Menu.Trigger>
                       <Menu.Portal>
                         <Menu.Positioner sideOffset={6} align="end">
-                          <Menu.Popup className="z-50 min-w-[180px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                          <Menu.Popup className="z-50 min-w-[180px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                             <Menu.Item
                               className={loyaltyRowMenuItemClass}
                               onClick={() => openLoyaltyEdit(lp)}

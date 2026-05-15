@@ -39,10 +39,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const FIELD =
-  "h-10 w-full min-w-0 rounded-[10px] border-fora-border bg-white px-3 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
+  "h-10 w-full min-w-0 rounded-md border-fora-border bg-white px-3 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
 
 const TEXTAREA_FIELD =
-  "min-h-[120px] w-full min-w-0 resize-y rounded-[10px] border border-fora-border bg-white px-3 py-2.5 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
+  "min-h-[120px] w-full min-w-0 resize-y rounded-md border border-fora-border bg-white px-3 py-2.5 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
 
 const SELECT_TRIGGER = cn(
   FIELD,
@@ -50,7 +50,7 @@ const SELECT_TRIGGER = cn(
 );
 
 const segmentWrap =
-  "flex shrink-0 rounded-full border border-fora-border bg-neutral-100/80 p-0.5 gap-0.5 sm:inline-flex";
+  "flex shrink-0 rounded-md border border-fora-border bg-neutral-100/80 p-0.5 gap-0.5 sm:inline-flex";
 
 /** Visual indicator for fields required to save (HTML `required` / submit validation). */
 function RequiredFieldMark() {
@@ -59,7 +59,7 @@ function RequiredFieldMark() {
 
 function segmentBtn(active: boolean) {
   return cn(
-    "inline-flex h-9 min-w-[4.5rem] flex-1 items-center justify-center rounded-full px-3 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-border/60 sm:flex-none",
+    "inline-flex h-9 min-w-[4.5rem] flex-1 items-center justify-center rounded-md px-3 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-border/60 sm:flex-none",
     active
       ? "bg-fora-navy text-white shadow-sm"
       : "bg-transparent text-fora-muted hover:bg-white/60 hover:text-fora-navy",
@@ -205,7 +205,7 @@ function RelationshipSelect({
         <SelectContent
           alignItemWithTrigger={false}
           align="start"
-          className="max-h-[min(70vh,420px)] w-[min(100vw-1.5rem,22rem)] min-w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-[12px] border border-fora-border bg-white p-0 shadow-lg ring-fora-border/20"
+          className="max-h-[min(70vh,420px)] w-[min(100vw-1.5rem,22rem)] min-w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-md border border-fora-border bg-white p-0 shadow-lg ring-fora-border/20"
         >
           <div
             className="sticky top-0 z-10 border-b border-fora-border/80 bg-white px-2.5 pb-2 pt-2"
@@ -277,7 +277,7 @@ function RelationshipSelect({
                               <SelectItem
                                 key={rel}
                                 value={rel}
-                                className="relative col-span-1 min-h-[2.75rem] w-full items-center justify-start rounded-md py-2 pr-7 pl-2 text-left text-[15px] font-normal text-fora-navy focus:bg-neutral-100/90 data-highlighted:bg-neutral-100/90"
+                                className="relative col-span-1 min-h-[2.75rem] w-full items-center justify-start rounded-sm py-2 pr-7 pl-2 text-left text-[15px] font-normal text-fora-navy focus:bg-neutral-100/90 data-highlighted:bg-neutral-100/90"
                               >
                                 {COMPANION_RELATIONSHIP_LABELS[rel]}
                               </SelectItem>
@@ -727,7 +727,7 @@ function AssociatedTravelerForm({
                     id={`${reactId}-client-picker`}
                     role="listbox"
                     aria-label="Matching client profiles"
-                    className="absolute top-full z-50 mt-1 max-h-[min(240px,40vh)] w-full overflow-y-auto rounded-[10px] border border-fora-border bg-white py-1 shadow-lg outline-none"
+                    className="absolute top-full z-50 mt-1 max-h-[min(240px,40vh)] w-full overflow-y-auto rounded-md border border-fora-border bg-white py-1 shadow-lg outline-none"
                     onMouseDown={cancelCloseLinkList}
                   >
                     {clientPickerRows.map((c, i) => (
@@ -760,7 +760,7 @@ function AssociatedTravelerForm({
                   legalName.trim() &&
                   clientPickerRows.length === 0 ? (
                   <div
-                    className="absolute top-full z-50 mt-1 w-full rounded-[10px] border border-fora-border bg-white px-3 py-2 text-[13px] text-fora-muted shadow-lg"
+                    className="absolute top-full z-50 mt-1 w-full rounded-md border border-fora-border bg-white px-3 py-2 text-[13px] text-fora-muted shadow-lg"
                     onMouseDown={cancelCloseLinkList}
                   >
                     No profiles match. Keep typing a legal name, or clear the filter.
@@ -893,7 +893,7 @@ function AssociatedTravelerForm({
             type="button"
             disabled={pending}
             className={cn(
-              "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+              "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-5 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
               pending && "pointer-events-none opacity-50",
             )}
           >
@@ -902,7 +902,7 @@ function AssociatedTravelerForm({
           <Button
             type="submit"
             disabled={pending}
-            className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
+            className="h-10 rounded-md bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
           >
             {mode === "add" ? "Add companion" : "Save"}
           </Button>
@@ -950,7 +950,7 @@ export function EditAssociatedTravelerDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "flex max-h-[min(92vh,800px)] min-h-0 w-full flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 sm:p-8",
+              "flex max-h-[min(92vh,800px)] min-h-0 w-full flex-col overflow-hidden rounded-md border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 sm:p-8",
               narrowPetLayout ? "max-w-[min(92vw,520px)]" : "max-w-[min(92vw,640px)]",
             )}
           >

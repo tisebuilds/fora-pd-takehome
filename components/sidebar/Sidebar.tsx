@@ -107,7 +107,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             onClick={() => setCollapsed(false)}
             aria-label="Expand navigation"
             title="Expand navigation"
-            className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md p-1.5 text-ink/55 outline-none transition-colors duration-200 hover:bg-ink/[0.06] hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+            className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-1.5 text-ink/55 outline-none transition-colors duration-200 hover:bg-ink/[0.06] hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
           >
             <span className="sr-only">Fora</span>
             <Image
@@ -139,7 +139,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
           aria-controls="app-sidebar-nav"
           aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
           className={cn(
-            "cursor-pointer rounded-md text-ink/55 outline-none transition-colors duration-200 hover:bg-ink/[0.06] hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+            "cursor-pointer rounded-sm text-ink/55 outline-none transition-colors duration-200 hover:bg-ink/[0.06] hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/25 focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
             collapsed ? "flex size-9 items-center justify-center" : "p-1.5"
           )}
         >
@@ -198,7 +198,7 @@ function NavItem({ item, isActive, collapsed }: { item: NavLeaf; isActive: boole
   const expandedInset = "gap-3.5 pl-8 pr-7";
 
   const base = cn(
-    "relative flex w-full items-center rounded-[4px] py-[11px] text-[13.5px] leading-none transition-[color] duration-200 ease-out",
+    "relative flex w-full items-center rounded-sm py-[11px] text-[13.5px] leading-none transition-[color] duration-200 ease-out",
     collapsed
       ? "justify-center px-0"
       : isActive && item.href && !item.external
@@ -318,7 +318,7 @@ function UserChip({
       )}
     >
       {showImage ? (
-        <div className="relative flex h-[30px] w-[30px] shrink-0 overflow-hidden rounded-full border border-rule bg-white" title={collapsed ? name : undefined}>
+        <div className="relative flex h-[30px] w-[30px] shrink-0 overflow-hidden rounded-md border border-rule bg-white" title={collapsed ? name : undefined}>
           <Image
             src={imageUrl as string}
             alt=""
@@ -332,7 +332,7 @@ function UserChip({
       ) : (
         <span
           aria-hidden
-          className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border border-rule bg-white font-serif text-[16px] italic text-ink"
+          className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-md border border-rule bg-white font-serif text-[16px] italic text-ink"
           title={collapsed ? name : undefined}
         >
           {userInitial(name)}

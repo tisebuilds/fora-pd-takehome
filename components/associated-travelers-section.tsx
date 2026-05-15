@@ -41,12 +41,12 @@ const editLinkCls =
   "text-[13px] font-normal text-fora-link no-underline hover:opacity-80";
 
 const menuItemClass =
-  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
+  "flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
 const NO_GROUP_PAYMENT_IDS: string[] = [];
 
 const ROW_CARD =
-  "rounded-[14px] border border-fora-border bg-white py-4 pl-5 pr-5";
+  "rounded-md border border-fora-border bg-white py-4 pl-5 pr-5";
 
 /** Matches the “Primary” label on the primary client row and human relationship chips. */
 const ROLE_BADGE_CLASS =
@@ -93,14 +93,14 @@ function TravelerProfileCard({
           <Menu.Root>
             <Menu.Trigger
               type="button"
-              className="-mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
+              className="-mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-md text-[#9CA3AF] outline-none transition-colors hover:bg-fora-app hover:text-fora-muted aria-expanded:bg-fora-app"
               aria-label={`More options for ${ariaLabel}`}
             >
               <MoreHorizontal className="size-[18px]" strokeWidth={1.85} aria-hidden />
             </Menu.Trigger>
             <Menu.Portal>
               <Menu.Positioner sideOffset={6} align="end">
-                <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                <Menu.Popup className="z-50 min-w-[200px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                   {menuItems}
                   {hasBookingDetails ? (
                     <Menu.Item
@@ -379,14 +379,14 @@ export function AssociatedTravelersSection({
     <Menu.Root>
       <Menu.Trigger
         type="button"
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-fora-muted outline-none transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-fora-muted outline-none transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app"
         aria-label={`Group options for ${group.name}`}
       >
         <MoreHorizontal className="size-4" strokeWidth={1.75} aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner sideOffset={6} align="end">
-          <Menu.Popup className="z-50 min-w-[220px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+          <Menu.Popup className="z-50 min-w-[220px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
             <Menu.Item className={menuItemClass} onClick={() => openRenameGroup(group)}>
               <Pencil className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
               Rename group
@@ -431,7 +431,7 @@ export function AssociatedTravelersSection({
   );
 
   const companionToolbar = (
-    <div className="-mx-6 mb-3 rounded-none bg-fora-app py-2.5 lg:-mx-10">
+    <div className="-mx-6 mb-3 bg-fora-app py-2.5 lg:-mx-10">
       <div className="flex flex-col gap-2 px-6 sm:flex-row sm:items-center sm:gap-3 lg:px-10">
         <div className="relative min-w-0 flex-1">
           <Search
@@ -444,7 +444,7 @@ export function AssociatedTravelersSection({
             onChange={(e) => setGroupSearchQuery(e.target.value)}
             placeholder="Search groups, travelers, booking fields, or household cards…"
             aria-label="Search companion groups and travelers"
-            className="h-10 w-full rounded-lg border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
+            className="h-10 w-full rounded-md border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
           />
         </div>
         <button
@@ -452,7 +452,7 @@ export function AssociatedTravelersSection({
           onClick={openAddGroup}
           className={cn(
             editLinkCls,
-            "inline-flex shrink-0 items-center self-start rounded-lg border border-fora-border bg-white px-2.5 py-1.5 transition-colors hover:bg-fora-app sm:self-auto",
+            "inline-flex shrink-0 items-center self-start rounded-md border border-fora-border bg-white px-2.5 py-1.5 transition-colors hover:bg-fora-app sm:self-auto",
           )}
         >
           + Add group
@@ -536,7 +536,7 @@ export function AssociatedTravelersSection({
                       <>
                         <div
                           className={cn(
-                            "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                            "flex size-12 shrink-0 items-center justify-center rounded-md text-[15px] font-bold leading-none tracking-tight",
                             placardAvatarClass(primaryClientName),
                           )}
                           aria-hidden
@@ -591,7 +591,7 @@ export function AssociatedTravelersSection({
                           <>
                             <div
                               className={cn(
-                                "flex size-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold leading-none tracking-tight",
+                                "flex size-12 shrink-0 items-center justify-center rounded-md text-[15px] font-bold leading-none tracking-tight",
                                 placardAvatarClass(companionRowKey(t)),
                               )}
                               aria-hidden

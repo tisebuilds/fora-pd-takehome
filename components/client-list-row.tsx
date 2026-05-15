@@ -25,7 +25,7 @@ export function ClientListRow({ client, active }: Props) {
       <span
         aria-hidden
         className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-full text-[12px] font-medium tracking-[0.06em]",
+          "flex size-9 shrink-0 items-center justify-center rounded-md text-[12px] font-medium tracking-[0.06em]",
           clientAvatarToneClasses(client.id)
         )}
       >

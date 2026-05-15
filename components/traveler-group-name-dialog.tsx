@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const FIELD =
-  "h-10 w-full min-w-0 rounded-lg border border-fora-border bg-white px-3 text-[15px] text-black shadow-none outline-none transition-colors placeholder:text-neutral-400 focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-300/80";
+  "h-10 w-full min-w-0 rounded-md border border-fora-border bg-white px-3 text-[15px] text-black shadow-none outline-none transition-colors placeholder:text-neutral-400 focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-300/80";
 
 function primaryGivenNameForLabel(primaryClientDisplayName: string): string {
   const t = primaryClientDisplayName.trim();
@@ -99,7 +99,7 @@ function TravelerGroupNameForm({
         />
       </div>
       {mode === "add" ? (
-        <label className="flex cursor-pointer gap-3 rounded-lg border border-fora-border bg-white p-4 outline-none transition-colors hover:bg-neutral-50/80 focus-within:ring-2 focus-within:ring-neutral-300/80">
+        <label className="flex cursor-pointer gap-3 rounded-md border border-fora-border bg-white p-4 outline-none transition-colors hover:bg-neutral-50/80 focus-within:ring-2 focus-within:ring-neutral-300/80">
           <input
             id={includePrimaryId}
             type="checkbox"
@@ -109,7 +109,7 @@ function TravelerGroupNameForm({
           />
           <span
             className={cn(
-              "mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-[3px] border bg-white",
+              "mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-sm border bg-white",
               includePrimaryClient ? "border-black bg-black" : "border-neutral-300 bg-white",
             )}
           >
@@ -132,7 +132,7 @@ function TravelerGroupNameForm({
           type="button"
           disabled={pending}
           className={cn(
-            "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-black outline-none transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300/80",
+            "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-5 text-[15px] font-medium text-black outline-none transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300/80",
             pending && "pointer-events-none opacity-50",
           )}
         >
@@ -141,7 +141,7 @@ function TravelerGroupNameForm({
         <Button
           type="submit"
           disabled={pending}
-          className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-neutral-800"
+          className="h-10 rounded-md bg-black px-6 text-[15px] font-medium text-white hover:bg-neutral-800"
         >
           {mode === "add" ? "Create" : "Save"}
         </Button>
@@ -198,7 +198,7 @@ export function TravelerGroupNameDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "w-full max-w-md rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
+              "w-full max-w-md rounded-md border border-neutral-200/80 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
             )}
           >
             <Dialog.Title className="font-sans text-xl font-semibold tracking-tight text-black">

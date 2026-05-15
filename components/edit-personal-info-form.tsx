@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-/** Shared field chrome for this form (~6px radius, light gray border) */
+/** Shared field chrome for this form (`rounded-sm` tier, light gray border) */
 const FORM_CONTROL =
-  "h-9 w-full min-w-0 rounded-[6px] border border-[#E5E7EB] bg-white text-sm text-gray-900 shadow-none outline-none transition-colors file:text-sm placeholder:text-gray-400 focus-visible:border-gray-400 focus-visible:ring-2 focus-visible:ring-gray-200/80";
+  "h-9 w-full min-w-0 rounded-sm border border-[#E5E7EB] bg-white text-sm text-gray-900 shadow-none outline-none transition-colors file:text-sm placeholder:text-gray-400 focus-visible:border-gray-400 focus-visible:ring-2 focus-visible:ring-gray-200/80";
 
 const FORM_SELECT_TRIGGER = cn(
   FORM_CONTROL,
@@ -90,7 +90,7 @@ function FlagDial({ country }: { country: string }) {
   return (
     <div
       className={cn(
-        "flex h-9 shrink-0 items-center gap-1 rounded-[6px] border border-[#E5E7EB] bg-white px-2 text-sm"
+        "flex h-9 shrink-0 items-center gap-1 rounded-sm border border-[#E5E7EB] bg-white px-2 text-sm"
       )}
     >
       <span aria-hidden>{flag}</span>

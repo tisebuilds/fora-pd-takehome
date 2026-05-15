@@ -157,7 +157,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 shrink-0 gap-1.5 rounded-lg border-[#E0E0E0] bg-white px-6 text-[15px] font-medium text-[#666666] hover:border-[#E0E0E0] hover:bg-neutral-100 hover:text-[#666666] aria-expanded:border-[#E0E0E0] aria-expanded:bg-neutral-100 aria-expanded:text-[#666666] dark:border-[#E0E0E0] dark:bg-white dark:text-[#666666] dark:hover:border-[#E0E0E0] dark:hover:bg-neutral-100 dark:hover:text-[#666666] dark:aria-expanded:border-[#E0E0E0] dark:aria-expanded:bg-neutral-100 dark:aria-expanded:text-[#666666]"
+                className="h-11 shrink-0 gap-1.5 rounded-md border-[#E0E0E0] bg-white px-6 text-[15px] font-medium text-[#666666] hover:border-[#E0E0E0] hover:bg-neutral-100 hover:text-[#666666] aria-expanded:border-[#E0E0E0] aria-expanded:bg-neutral-100 aria-expanded:text-[#666666] dark:border-[#E0E0E0] dark:bg-white dark:text-[#666666] dark:hover:border-[#E0E0E0] dark:hover:bg-neutral-100 dark:hover:text-[#666666] dark:aria-expanded:border-[#E0E0E0] dark:aria-expanded:bg-neutral-100 dark:aria-expanded:text-[#666666]"
               >
                 <Plus className="size-4 text-[#666666]" strokeWidth={2} aria-hidden />
                 Add client
@@ -171,7 +171,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
         <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:gap-0 lg:px-8">
           <aside
             className={cn(
-              "flex max-h-full min-h-0 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:max-h-none lg:flex-none lg:basis-[360px] lg:rounded-r-none lg:border-r-0",
+              "flex max-h-full min-h-0 flex-col overflow-hidden rounded-md border border-fora-border bg-white lg:max-h-none lg:flex-none lg:basis-[360px] lg:rounded-r-none lg:border-r-0",
               hasSelection && "hidden lg:flex"
             )}
           >
@@ -188,14 +188,14 @@ export function ClientsSplitShell({ clients, children }: Props) {
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search by name, email, or city…"
                     aria-label="Search clients"
-                    className="h-10 w-full rounded-lg border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
+                    className="h-10 w-full rounded-md border-0 bg-fora-app pl-9 pr-3 text-[14px] shadow-none placeholder:text-fora-muted focus-visible:border-0"
                   />
                 </div>
                 <ClientSortMenu
                   value={sort}
                   onChange={setSort}
                   variant="icon"
-                  triggerClassName="h-10 w-10 shrink-0 rounded-lg bg-white text-fora-muted hover:bg-fora-app"
+                  triggerClassName="h-10 w-10 shrink-0 rounded-md bg-white text-fora-muted hover:bg-fora-app"
                 />
               </div>
             </div>
@@ -230,7 +230,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
                 Back
               </Link>
             ) : null}
-            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white lg:rounded-l-none">
+            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-fora-border bg-white lg:rounded-l-none">
               {children}
             </section>
           </div>
@@ -244,7 +244,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
             <ArrowLeft className="size-4 shrink-0" strokeWidth={2} aria-hidden />
             Back
           </Link>
-          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white">
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-fora-border bg-white">
             {children}
           </section>
         </div>
@@ -262,11 +262,11 @@ export function ClientsSplitShell({ clients, children }: Props) {
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search by name, email, phone, or location"
                 aria-label="Search clients"
-                className="h-11 rounded-lg border-[#E5E7EB] bg-white pl-11 pr-3 text-[15px] shadow-none"
+                className="h-11 rounded-md border-[#E5E7EB] bg-white pl-11 pr-3 text-[15px] shadow-none"
               />
             </div>
           </div>
-          <div className="mx-auto mt-6 w-full max-w-6xl overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
+          <div className="mx-auto mt-6 w-full max-w-6xl overflow-hidden rounded-md border border-[#E5E7EB] bg-white">
             {visibleCards.length === 0 ? (
               <p className="px-4 py-6 text-sm text-fora-muted">No clients match your search.</p>
             ) : (

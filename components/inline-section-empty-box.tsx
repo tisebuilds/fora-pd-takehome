@@ -18,7 +18,7 @@ export function InlineSectionEmptyBox({
   return (
     <div
       className={cn(
-        "min-w-0 overflow-hidden rounded-2xl border border-fora-border bg-white",
+        "min-w-0 overflow-hidden rounded-md border border-fora-border bg-white",
         className,
       )}
     >

@@ -57,14 +57,14 @@ export function DetailSection({
       >
         <div
           className={cn(
-            "flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-md py-1 pr-1 transition-colors hover:bg-fora-app/60 sm:gap-3",
+            "flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-sm py-1 pr-1 transition-colors hover:bg-fora-app/60 sm:gap-3",
             detailSectionIconGutterClass,
           )}
         >
           <button
             type="button"
             onClick={toggle}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-0.5 pr-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-sm py-0.5 pr-1 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:gap-2.5"
             aria-expanded={open}
             aria-controls={contentId}
           >

@@ -116,7 +116,7 @@ function useShortcutCopyLabel(): string {
 }
 
 const cardActionsMenuItemClass =
-  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
+  "flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
 function CreditCardBrandMark({
   brand,
@@ -152,7 +152,7 @@ function CreditCardActionsMenu({ muted }: { muted?: boolean }) {
       <Menu.Trigger
         type="button"
         className={cn(
-          "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#9CA3AF] outline-none transition-colors hover:bg-[#F9FAFB] hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20 aria-expanded:bg-[#F9FAFB]",
+          "inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-[#E5E7EB] bg-white text-[#9CA3AF] outline-none transition-colors hover:bg-[#F9FAFB] hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20 aria-expanded:bg-[#F9FAFB]",
           muted && "border-fora-border/70",
         )}
         aria-label="More card options"
@@ -161,7 +161,7 @@ function CreditCardActionsMenu({ muted }: { muted?: boolean }) {
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner sideOffset={6} align="end">
-          <Menu.Popup className="z-50 min-w-[188px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+          <Menu.Popup className="z-50 min-w-[188px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
             <Menu.Item
               className={cardActionsMenuItemClass}
               onClick={() => toast("Rename card (demo)")}
@@ -247,7 +247,7 @@ function CopyValueButton({
       type="button"
       title={ariaLabel}
       className={cn(
-        "shrink-0 rounded p-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-navy/25",
+        "shrink-0 rounded-sm p-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-fora-navy/25",
         onDark
           ? "self-start text-white/65 hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
           : cn(
@@ -374,14 +374,14 @@ function CreditCardPanel({
   const colLabel = "text-[10px] font-medium uppercase tracking-wide text-[#9CA3AF]";
   const colValue = "mt-1 text-[14px] font-semibold leading-snug text-[#111827]";
   const colBtn =
-    "flex w-full min-w-0 flex-col rounded-md px-3 py-2.5 text-left outline-none transition-colors hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:px-4 sm:py-3";
+    "flex w-full min-w-0 flex-col rounded-sm px-3 py-2.5 text-left outline-none transition-colors hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-fora-navy/20 sm:px-4 sm:py-3";
   const panBtn =
-    "min-w-0 rounded-md text-left outline-none transition-colors hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-fora-navy/20";
+    "min-w-0 rounded-sm text-left outline-none transition-colors hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-fora-navy/20";
 
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)]",
+        "overflow-hidden rounded-md border bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)]",
         mutedChrome ? "border-fora-border/70" : "border-[#E5E7EB]",
       )}
     >
@@ -403,7 +403,7 @@ function CreditCardPanel({
           {showVisibilityToggle && onToggleMasked ? (
             <button
               type="button"
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#9CA3AF] outline-none transition-colors hover:bg-black/[0.04] hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20"
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-[#9CA3AF] outline-none transition-colors hover:bg-black/[0.04] hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20"
               aria-label={masked ? "Show card number and security code" : "Hide card number and security code"}
               aria-pressed={!masked}
               onClick={onToggleMasked}
@@ -564,7 +564,7 @@ export function CreditCardRow({
           <p className="min-w-0 text-[11px] leading-relaxed text-[#9CA3AF]">
             <kbd
               suppressHydrationWarning
-              className="mx-0.5 inline-flex items-center rounded border border-[#E5E7EB] bg-white px-1.5 py-0.5 font-sans text-[10px] font-medium text-[#374151] shadow-[inset_0_-1px_0_rgba(0,0,0,0.06)]"
+              className="mx-0.5 inline-flex items-center rounded-sm border border-[#E5E7EB] bg-white px-1.5 py-0.5 font-sans text-[10px] font-medium text-[#374151] shadow-[inset_0_-1px_0_rgba(0,0,0,0.06)]"
             >
               [{shortcutLabel}]
             </kbd>{" "}
@@ -606,12 +606,12 @@ export function CreditCardRow({
     <div
       role="group"
       aria-label={groupLabel}
-      className={cn("rounded-[10px] border border-fora-border bg-white px-3 py-3", className)}
+      className={cn("rounded-md border border-fora-border bg-white px-3 py-3", className)}
     >
       <div className="flex items-start justify-between gap-2">
         <span
           className={cn(
-            "inline-flex min-h-[28px] shrink-0 items-center justify-center rounded border border-fora-border px-2 py-0.5",
+            "inline-flex min-h-[28px] shrink-0 items-center justify-center rounded-sm border border-fora-border px-2 py-0.5",
             card.brand !== "visa" && "text-[11px] font-bold tracking-wide text-fora-link",
           )}
           aria-hidden

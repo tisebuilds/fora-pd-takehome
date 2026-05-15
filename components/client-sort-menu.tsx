@@ -31,8 +31,8 @@ export function ClientSortMenu({ value, onChange, variant = "pill", triggerClass
       <Menu.Trigger
         className={cn(
           variant === "pill"
-            ? "inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-fora-border bg-white px-3.5 text-[13px] text-fora-navy transition-colors hover:bg-fora-app aria-expanded:bg-fora-app"
-            : "inline-flex size-8 items-center justify-center rounded-md text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy",
+            ? "inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-fora-border bg-white px-3.5 text-[13px] text-fora-navy transition-colors hover:bg-fora-app aria-expanded:bg-fora-app"
+            : "inline-flex size-8 items-center justify-center rounded-sm text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy aria-expanded:bg-fora-app aria-expanded:text-fora-navy",
           triggerClassName
         )}
         aria-label={variant === "icon" ? `Sort list (${sortLabel(value)})` : undefined}
@@ -62,14 +62,14 @@ function SortMenuPopup({
   return (
     <Menu.Portal>
       <Menu.Positioner sideOffset={6} align="end">
-        <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-[13px] text-fora-navy shadow-md outline-none">
+        <Menu.Popup className="z-50 min-w-[200px] rounded-md border border-fora-border bg-white p-1 text-[13px] text-fora-navy shadow-md outline-none">
           <Menu.RadioGroup value={value} onValueChange={(v) => onChange(v as ClientSortKey)}>
             {SORT_OPTIONS.map((opt) => (
               <Menu.RadioItem
                 key={opt.value}
                 value={opt.value}
                 closeOnClick
-                className="relative flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 pr-7 text-[13px] outline-none transition-colors data-highlighted:bg-fora-app"
+                className="relative flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 pr-7 text-[13px] outline-none transition-colors data-highlighted:bg-fora-app"
               >
                 <RadioRow>{opt.label}</RadioRow>
               </Menu.RadioItem>

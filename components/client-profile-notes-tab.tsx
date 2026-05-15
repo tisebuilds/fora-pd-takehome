@@ -10,10 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const TEXT_FIELD =
-  "min-h-[160px] w-full min-w-0 rounded-lg border-fora-border bg-white px-3 py-2.5 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
+  "min-h-[160px] w-full min-w-0 rounded-md border-fora-border bg-white px-3 py-2.5 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
 
 const toolbarBtnClass =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-fora-border bg-white px-3.5 text-[14px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-black/15 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-md border border-fora-border bg-white px-3.5 text-[14px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-black/15 disabled:pointer-events-none disabled:opacity-50";
 
 /** Shown under meeting recordings in this demo (not from real transcription). */
 const DEMO_MEETING_NOTES_TEXT = `Auto-generated meeting notes (demo, not from real speech):
@@ -364,9 +364,9 @@ export function ClientProfileNotesTab({ client }: Props) {
               Record meeting
             </button>
           ) : (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-fora-border bg-fora-app px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-fora-border bg-fora-app px-3 py-2">
               <span
-                className="inline-flex size-2.5 shrink-0 rounded-full bg-red-500"
+                className="inline-flex size-2.5 shrink-0 rounded-md bg-red-500"
                 aria-hidden
               />
               <span className="text-[14px] font-medium tabular-nums text-fora-navy">
@@ -375,7 +375,7 @@ export function ClientProfileNotesTab({ client }: Props) {
               <button
                 type="button"
                 onClick={stopMeetingRecording}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-fora-navy px-3 text-[13px] font-medium text-white hover:opacity-90"
+                className="inline-flex h-9 items-center gap-1.5 rounded-sm bg-fora-navy px-3 text-[13px] font-medium text-white hover:opacity-90"
               >
                 <Square className="size-3.5 fill-current" strokeWidth={0} aria-hidden />
                 Stop & save
@@ -388,7 +388,7 @@ export function ClientProfileNotesTab({ client }: Props) {
           {sortedCards.map((note) => (
             <article
               key={note.id}
-              className="rounded-[14px] border border-fora-border bg-white px-4 py-4"
+              className="rounded-md border border-fora-border bg-white px-4 py-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -399,7 +399,7 @@ export function ClientProfileNotesTab({ client }: Props) {
                   {note.kind === "text" ? (
                     <button
                       type="button"
-                      className="shrink-0 rounded-lg p-2 text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
+                      className="shrink-0 rounded-md p-2 text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-navy"
                       aria-label="Edit note"
                       onClick={() => openEditWrittenNote(note)}
                     >
@@ -408,7 +408,7 @@ export function ClientProfileNotesTab({ client }: Props) {
                   ) : null}
                   <button
                     type="button"
-                    className="shrink-0 rounded-lg p-2 text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-danger"
+                    className="shrink-0 rounded-md p-2 text-fora-muted transition-colors hover:bg-fora-app hover:text-fora-danger"
                     aria-label="Remove note"
                     onClick={() => removeNote(note.id)}
                   >
@@ -452,7 +452,7 @@ export function ClientProfileNotesTab({ client }: Props) {
           <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <Dialog.Popup
               className={cn(
-                "max-h-[min(90vh,640px)] w-full max-w-md overflow-y-auto rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
+                "max-h-[min(90vh,640px)] w-full max-w-md overflow-y-auto rounded-md border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
               )}
             >
               <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
@@ -480,7 +480,7 @@ export function ClientProfileNotesTab({ client }: Props) {
                     <Dialog.Close
                       type="button"
                       className={cn(
-                        "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+                        "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
                       )}
                     >
                       Cancel
@@ -488,7 +488,7 @@ export function ClientProfileNotesTab({ client }: Props) {
                     <Button
                       type="button"
                       onClick={saveWrittenNote}
-                      className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
+                      className="h-10 rounded-md bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
                     >
                       {writtenMode === "edit" ? "Save changes" : "Add to timeline"}
                     </Button>

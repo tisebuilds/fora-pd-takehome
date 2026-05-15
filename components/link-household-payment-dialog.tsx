@@ -79,7 +79,7 @@ function LinkHouseholdPaymentCardPicker({
               <label
                 htmlFor={id}
                 className={cn(
-                  "flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 text-[14px] transition-colors",
+                  "flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 text-[14px] transition-colors",
                   checked
                     ? "border-fora-navy/30 bg-fora-app"
                     : "border-fora-border bg-white hover:bg-fora-app/40",
@@ -90,7 +90,7 @@ function LinkHouseholdPaymentCardPicker({
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggle(card.id)}
-                  className="mt-0.5 size-4 shrink-0 rounded border-fora-border text-fora-navy"
+                  className="mt-0.5 size-4 shrink-0 rounded-sm border-fora-border text-fora-navy"
                 />
                 <span className="min-w-0 leading-snug text-fora-navy">{cardSummaryLine(card)}</span>
               </label>
@@ -104,7 +104,7 @@ function LinkHouseholdPaymentCardPicker({
           type="button"
           disabled={pending}
           className={cn(
-            "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+            "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
             pending && "pointer-events-none opacity-50",
           )}
         >
@@ -114,7 +114,7 @@ function LinkHouseholdPaymentCardPicker({
           type="button"
           disabled={pending}
           onClick={() => void handleSave()}
-          className="h-10 rounded-full bg-fora-navy px-6 text-[15px] font-medium text-white hover:bg-fora-navy/90"
+          className="h-10 rounded-md bg-fora-navy px-6 text-[15px] font-medium text-white hover:bg-fora-navy/90"
         >
           Save
         </Button>
@@ -170,7 +170,7 @@ export function LinkHouseholdPaymentDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "max-h-[min(520px,85vh)] w-full max-w-md overflow-y-auto rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
+              "max-h-[min(520px,85vh)] w-full max-w-md overflow-y-auto rounded-md border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
             )}
           >
             <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
@@ -189,7 +189,7 @@ export function LinkHouseholdPaymentDialog({
 
             {cards.length === 0 ? (
               <>
-                <div className="mt-6 rounded-lg border border-fora-border bg-fora-app/50 px-4 py-3.5 text-[14px] leading-snug text-fora-muted">
+                <div className="mt-6 rounded-md border border-fora-border bg-fora-app/50 px-4 py-3.5 text-[14px] leading-snug text-fora-muted">
                   <p>No cards on this client profile yet.</p>
                   <button
                     type="button"
@@ -206,7 +206,7 @@ export function LinkHouseholdPaymentDialog({
                   <Dialog.Close
                     type="button"
                     className={cn(
-                      "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+                      "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
                     )}
                   >
                     Cancel

@@ -44,7 +44,7 @@ function PassportValidityBadge({ expiry }: { expiry: string }) {
   return (
     <span
       className={cn(
-        "inline-flex max-w-full shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-medium leading-tight",
+        "inline-flex max-w-full shrink-0 items-center rounded-md px-2 py-0.5 text-[11px] font-medium leading-tight",
         valid ? "bg-[#E8F5EC] text-[#166534]" : "bg-[#FEF2F2] text-fora-danger",
       )}
     >

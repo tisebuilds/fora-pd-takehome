@@ -81,14 +81,14 @@ function companionInlineDobLine(t: AssociatedTraveler): string | null {
 }
 
 const menuItemClass =
-  "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
+  "flex w-full cursor-default items-center gap-2 rounded-sm px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
 /** Shared grid for cards-mode table header (shell) and each data row: five columns (client avatar+text, email, bookings, actions). */
 export const clientListTableGridClass =
   "grid w-full grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_3.5rem_2.75rem] gap-x-3 items-center sm:gap-x-4";
 
 const navCellClass =
-  "cursor-pointer rounded-md text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 focus-visible:ring-offset-0";
+  "cursor-pointer rounded-sm text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fora-navy/20 focus-visible:ring-offset-0";
 
 export function ClientListCard({ client, onViewDetails }: Props) {
   const [addCreditOpen, setAddCreditOpen] = useState(false);
@@ -111,7 +111,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
 
   const avatarCell = (
     <div
-      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F3E8D6] text-[13px] font-semibold text-[#111827]"
+      className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[#F3E8D6] text-[13px] font-semibold text-[#111827]"
       aria-hidden
     >
       {clientInitials(client)}
@@ -200,14 +200,14 @@ export function ClientListCard({ client, onViewDetails }: Props) {
         <div className="flex shrink-0 justify-end">
           <Menu.Root>
             <Menu.Trigger
-              className="inline-flex size-9 items-center justify-center rounded-full bg-transparent text-[#6B7280] transition-colors hover:bg-[#F9F7F2] hover:text-[#111827] aria-expanded:bg-[#F9F7F2]"
+              className="inline-flex size-9 items-center justify-center rounded-md bg-transparent text-[#6B7280] transition-colors hover:bg-[#F9F7F2] hover:text-[#111827] aria-expanded:bg-[#F9F7F2]"
               aria-label={`Actions for ${clientDisplayName(client)}`}
             >
               <MoreHorizontal className="size-4" strokeWidth={2} aria-hidden />
             </Menu.Trigger>
             <Menu.Portal>
               <Menu.Positioner sideOffset={6} align="end">
-                <Menu.Popup className="z-50 min-w-[200px] rounded-lg border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
+                <Menu.Popup className="z-50 min-w-[200px] rounded-md border border-fora-border bg-white p-1 text-fora-navy shadow-md outline-none">
                   {onViewDetails ? (
                     <Menu.Item onClick={onViewDetails} className={menuItemClass}>
                       <ArrowRight className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
@@ -293,7 +293,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                         {group.name}
                       </p>
                     ) : null}
-                    <div className="flex flex-col divide-y divide-[#E5E7EB] rounded-lg border border-[#E5E7EB] bg-[#FAFAFA]">
+                    <div className="flex flex-col divide-y divide-[#E5E7EB] rounded-md border border-[#E5E7EB] bg-[#FAFAFA]">
                       {group.travelers.map((t) => {
                         const relationship = companionInlineRelationship(t);
                         const petNotes = companionInlinePetNotes(t);
@@ -301,7 +301,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                         return (
                           <div key={t.id} className="flex items-start gap-3 px-3 py-2.5 sm:px-3.5 sm:py-3">
                             <div
-                              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#F3E8D6] text-[12px] font-semibold text-[#111827]"
+                              className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#F3E8D6] text-[12px] font-semibold text-[#111827]"
                               aria-hidden
                             >
                               {companionInlineInitials(t)}

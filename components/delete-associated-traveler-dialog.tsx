@@ -69,7 +69,7 @@ export function DeleteAssociatedTravelerDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "w-full max-w-md rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
+              "w-full max-w-md rounded-md border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0",
             )}
           >
             <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
@@ -90,7 +90,7 @@ export function DeleteAssociatedTravelerDialog({
                 type="button"
                 disabled={pending}
                 className={cn(
-                  "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+                  "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
                   pending && "pointer-events-none opacity-50",
                 )}
               >
@@ -100,7 +100,7 @@ export function DeleteAssociatedTravelerDialog({
                 type="button"
                 disabled={pending || !target}
                 onClick={() => void handleConfirm()}
-                className="h-10 rounded-full bg-fora-danger px-6 text-[15px] font-medium text-white hover:bg-fora-danger/90"
+                className="h-10 rounded-md bg-fora-danger px-6 text-[15px] font-medium text-white hover:bg-fora-danger/90"
               >
                 Remove
               </Button>

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const FIELD =
-  "h-10 w-full min-w-0 rounded-lg border-fora-border bg-white px-3 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
+  "h-10 w-full min-w-0 rounded-md border-fora-border bg-white px-3 text-[15px] text-fora-navy shadow-none outline-none transition-colors placeholder:text-fora-muted focus-visible:border-fora-border focus-visible:ring-2 focus-visible:ring-fora-border/60";
 
 type Props = {
   open: boolean;
@@ -50,7 +50,7 @@ export function AddCreditCardDialog({ open, onOpenChange }: Props) {
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "max-h-[min(90vh,640px)] w-full max-w-md overflow-y-auto rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0"
+              "max-h-[min(90vh,640px)] w-full max-w-md overflow-y-auto rounded-md border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0"
             )}
           >
             <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
@@ -162,14 +162,14 @@ export function AddCreditCardDialog({ open, onOpenChange }: Props) {
                 <Dialog.Close
                   type="button"
                   className={cn(
-                    "inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60"
+                    "inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-fora-border bg-white px-4 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60"
                   )}
                 >
                   Cancel
                 </Dialog.Close>
                 <Button
                   type="submit"
-                  className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
+                  className="h-10 rounded-md bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
                 >
                   Add card
                 </Button>

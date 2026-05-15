@@ -42,7 +42,7 @@ export function ClientFilterChips({ value, onChange, counts, className }: Props)
             aria-selected={active}
             onClick={() => onChange(chip.key)}
             className={cn(
-              "inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-3.5 text-[13px] leading-none transition-colors",
+              "inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] leading-none transition-colors",
               "border border-fora-border bg-white text-fora-navy hover:bg-fora-app",
               active && "border-ink bg-ink text-paper hover:bg-ink"
             )}
@@ -50,7 +50,7 @@ export function ClientFilterChips({ value, onChange, counts, className }: Props)
             <span>{chip.label}</span>
             <span
               className={cn(
-                "inline-flex min-w-[20px] items-center justify-center rounded-md px-1.5 text-[11px] tabular-nums",
+                "inline-flex min-w-[20px] items-center justify-center rounded-sm px-1.5 text-[11px] tabular-nums",
                 active ? "bg-white/20 text-paper" : "bg-ink/[0.08] text-fora-muted"
               )}
             >

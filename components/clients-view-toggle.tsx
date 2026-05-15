@@ -34,27 +34,27 @@ type EntranceProps = {
 function SplitLayoutIllustration() {
   return (
     <div
-      className="w-full max-w-[220px] rounded-lg bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
+      className="w-full max-w-[220px] rounded-md bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
       aria-hidden
     >
       <div className="flex gap-2">
         <div className="flex w-[34%] shrink-0 flex-col justify-between gap-1 py-0.5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-1.5 rounded-[4px] bg-[#EBE2D5]" />
+            <div key={i} className="h-1.5 rounded-sm bg-[#EBE2D5]" />
           ))}
         </div>
         <div className="flex min-h-[88px] min-w-0 flex-1 flex-col gap-1">
           <div className="flex gap-1">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-1.5 w-3 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+              <div key={i} className="h-1.5 w-3 shrink-0 rounded-sm bg-[#EBE2D5]" />
             ))}
           </div>
-          <div className="h-2 shrink-0 rounded-[4px] bg-[#333333]" />
-          <div className="h-px shrink-0 rounded-full bg-[#EBE2D5]" />
-          <div className="min-h-[28px] flex-1 rounded-[4px] bg-[#EBE2D5]" />
+          <div className="h-2 shrink-0 rounded-sm bg-[#333333]" />
+          <div className="h-px shrink-0 rounded-md bg-[#EBE2D5]" />
+          <div className="min-h-[28px] flex-1 rounded-sm bg-[#EBE2D5]" />
           <div className="flex shrink-0 gap-1">
-            <div className="h-2 flex-1 rounded-[4px] bg-[#EBE2D5]" />
-            <div className="h-2 flex-1 rounded-[4px] bg-[#EBE2D5]" />
+            <div className="h-2 flex-1 rounded-sm bg-[#EBE2D5]" />
+            <div className="h-2 flex-1 rounded-sm bg-[#EBE2D5]" />
           </div>
         </div>
       </div>
@@ -65,24 +65,24 @@ function SplitLayoutIllustration() {
 function CardListIllustration() {
   return (
     <div
-      className="flex w-full max-w-[220px] flex-col gap-1.5 rounded-lg bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
+      className="flex w-full max-w-[220px] flex-col gap-1.5 rounded-md bg-white p-2.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.04)]"
       aria-hidden
     >
       <div className="flex items-center gap-2">
-        <div className="h-2 min-w-0 flex-1 rounded-[4px] bg-[#333333]" />
-        <div className="h-2 w-5 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+        <div className="h-2 min-w-0 flex-1 rounded-sm bg-[#333333]" />
+        <div className="h-2 w-5 shrink-0 rounded-sm bg-[#EBE2D5]" />
       </div>
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 rounded-[4px] bg-[#F5F0E8] px-1.5 py-1.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.03)]"
+          className="flex items-center gap-2 rounded-sm bg-[#F5F0E8] px-1.5 py-1.5 shadow-[inset_0_0_0_1px_rgb(0_0_0_/_.03)]"
         >
-          <div className="size-2.5 shrink-0 rounded-full bg-[#EBE2D5]" />
+          <div className="size-2.5 shrink-0 rounded-md bg-[#EBE2D5]" />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <div className="h-1.5 w-[72%] rounded-[4px] bg-[#333333]" />
-            <div className="h-1 w-full rounded-[4px] bg-[#EBE2D5]" />
+            <div className="h-1.5 w-[72%] rounded-sm bg-[#333333]" />
+            <div className="h-1 w-full rounded-sm bg-[#EBE2D5]" />
           </div>
-          <div className="h-2 w-3.5 shrink-0 rounded-[4px] bg-[#EBE2D5]" />
+          <div className="h-2 w-3.5 shrink-0 rounded-sm bg-[#EBE2D5]" />
         </div>
       ))}
     </div>
@@ -90,7 +90,7 @@ function CardListIllustration() {
 }
 
 const cardShell =
-  "group flex w-full flex-col overflow-hidden rounded-2xl border border-[#E8E4DE] bg-white text-left shadow-[0_1px_2px_rgb(0_0_0_/_.04)] transition-[border-color,box-shadow] hover:border-[#D4CEC3] hover:shadow-[0_2px_8px_rgb(0_0_0_/_.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#333333]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-fora-app";
+  "group flex w-full flex-col overflow-hidden rounded-md border border-[#E8E4DE] bg-white text-left shadow-[0_1px_2px_rgb(0_0_0_/_.04)] transition-[border-color,box-shadow] hover:border-[#D4CEC3] hover:shadow-[0_2px_8px_rgb(0_0_0_/_.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#333333]/20 focus-visible:ring-offset-2 focus-visible:ring-offset-fora-app";
 
 /**
  * Full-screen entry step: reviewer must pick which clients prototype to enter
