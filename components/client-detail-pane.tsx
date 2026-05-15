@@ -106,12 +106,12 @@ const copyFieldButtonClass =
 function CopyFieldButton({
   text,
   title,
-  ariaLabel,
+  "aria-label": ariaLabel,
   successMessage = "Copied to clipboard",
 }: {
   text: string;
   title: string;
-  ariaLabel: string;
+  "aria-label": string;
   /** Toast after successful copy */
   successMessage?: string;
 }) {
