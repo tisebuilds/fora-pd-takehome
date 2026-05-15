@@ -49,7 +49,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
     segments[0] === "clients" && segments.length >= 2 ? segments[1] : null;
   const hasSelection = Boolean(explicitId);
 
-  /** On `/clients`, desktop shows the first client in the right pane — match that in the list. */
+  /** On `/clients`, desktop shows the first client in the right pane; match that in the list. */
   const [isLg, setIsLg] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -115,7 +115,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
   const hideClientsHeader =
     isSplit && hasSelection && !isLg;
 
-  /** Cards with selection: unchanged — no top bar. Split otherwise shows bar unless mobile client detail. */
+  /** Cards with selection: unchanged (no top bar). Split otherwise shows bar unless mobile client detail. */
   const showClientsHeader = (!hasSelection || isSplit) && !hideClientsHeader;
 
   /** Cards mode uses the same search string but ignores sort (original prototype). */
@@ -143,7 +143,7 @@ export function ClientsSplitShell({ clients, children }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Top bar — split: hidden on mobile when a client is open (Back + detail only). Cards: hidden when a client is open. */}
+      {/* Top bar: split layout hides on mobile when a client is open (Back + detail only). Cards: hidden when a client is open. */}
       {showClientsHeader ? (
         <header className="shrink-0 bg-fora-app px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">

@@ -14,7 +14,7 @@ import type {
 import { clientDisplayName, formatImportantDate, formatPhoneDisplay } from "@/lib/format";
 
 /**
- * Hardcoded seed data for the Porta scaffold — all names and numbers are fictional.
+ * Hardcoded seed data for the Porta scaffold. All names and numbers are fictional.
  * Brad Andrews matches the reference screenshots.
  */
 const seedClients: Client[] = [
@@ -38,13 +38,13 @@ const seedClients: Client[] = [
         id: "pn-brad-2",
         kind: "text",
         createdAt: "2025-11-02T15:30:00.000Z",
-        text: "Kickoff call for Q1 Hawaii trip — prefers direct flights and morning departures when possible.",
+        text: "Kickoff call for Q1 Hawaii trip. Prefers direct flights and morning departures when possible.",
       },
       {
         id: "pn-brad-1",
         kind: "text",
         createdAt: "2025-10-18T09:12:00.000Z",
-        text: "Son has a gluten allergy — double-check restaurant reservations.",
+        text: "Son has a gluten allergy. Double-check restaurant reservations.",
       },
     ],
     addresses: [
@@ -206,7 +206,7 @@ const seedClients: Client[] = [
         nationalNumber: "3125550199",
       },
     ],
-    notes: "Corporate road warrior — weekday stays only.",
+    notes: "Corporate road warrior; weekday stays only.",
     addresses: [
       {
         id: "addr-kb-1",
@@ -347,7 +347,7 @@ const seedClients: Client[] = [
       },
     ],
     notes:
-      "Advisor Margot is booking Grandma Susan’s 80th birthday trip. Travelers: Grandpa Andrew; Lisa with Cliff and kids Bob (7) and Alice (11); Matt with Cody, Avery (9), and Spot the dog. Nine people plus Spot. Three hotel reservations under Susan, Lisa, and Matt — each pays their own room.",
+      "Advisor Margot is booking Grandma Susan’s 80th birthday trip. Travelers: Grandpa Andrew; Lisa with Cliff and kids Bob (7) and Alice (11); Matt with Cody, Avery (9), and Spot the dog. Nine people plus Spot. Three hotel reservations under Susan, Lisa, and Matt; each pays their own room.",
     addresses: [
       {
         id: "addr-sm-1",
@@ -410,7 +410,7 @@ const seedClients: Client[] = [
     travelerGroups: [
       {
         id: "tg-sm-folio-susan",
-        name: "Hotel — booked as Susan (Grandparents)",
+        name: "Hotel (booked as Susan, Grandparents)",
         includePrimaryClient: true,
         paymentCardIds: ["cc-sm-1"],
         travelers: [
@@ -431,7 +431,7 @@ const seedClients: Client[] = [
       },
       {
         id: "tg-sm-folio-lisa",
-        name: "Hotel — booked as Lisa",
+        name: "Hotel (booked as Lisa)",
         includePrimaryClient: false,
         paymentCardIds: ["cc-sm-2"],
         travelers: [
@@ -477,7 +477,7 @@ const seedClients: Client[] = [
       },
       {
         id: "tg-sm-folio-matt",
-        name: "Hotel — booked as Matt",
+        name: "Hotel (booked as Matt)",
         includePrimaryClient: false,
         paymentCardIds: ["cc-sm-3"],
         travelers: [
@@ -673,7 +673,7 @@ function buildScaleDemoClients(count: number): Client[] {
           nationalNumber: String(2000000000 + ((i * 7919) % 800000000)),
         },
       ],
-      notes: i % 6 === 0 ? "Demo profile — synthetic row for scale testing." : null,
+      notes: i % 6 === 0 ? "Demo profile (synthetic row for scale testing)." : null,
       addresses: [
         {
           id: `addr-${id}`,
@@ -775,7 +775,7 @@ export type PersonalInfoSaveInput = {
 
 const PHONE_TYPES: PhoneType[] = ["mobile", "home", "work", "other"];
 
-/** Mutates the in-memory seed client — used by the edit form Server Action. */
+/** Mutates the in-memory seed client; used by the edit form Server Action. */
 export function updateClientPersonalInfo(
   clientId: string,
   input: PersonalInfoSaveInput
@@ -815,7 +815,7 @@ export function updateClientPersonalInfo(
   return true;
 }
 
-/** Mutates the in-memory seed client — used by loyalty program Server Actions. */
+/** Mutates the in-memory seed client; used by loyalty program Server Actions. */
 export function updateLoyaltyProgram(
   clientId: string,
   programId: string,
@@ -830,7 +830,7 @@ export function updateLoyaltyProgram(
   return true;
 }
 
-/** Appends a loyalty program to the in-memory seed client — used by loyalty program Server Actions. */
+/** Appends a loyalty program to the in-memory seed client; used by loyalty program Server Actions. */
 export function addLoyaltyProgram(
   clientId: string,
   data: Pick<LoyaltyProgram, "programName" | "accountNumber">,
@@ -846,7 +846,7 @@ export function addLoyaltyProgram(
   return true;
 }
 
-/** Mutates the in-memory seed client — used by loyalty program Server Actions. */
+/** Mutates the in-memory seed client; used by loyalty program Server Actions. */
 export function deleteLoyaltyProgram(clientId: string, programId: string): boolean {
   const client = clients.find((c) => c.id === clientId);
   if (!client) return false;
@@ -876,7 +876,7 @@ export function getTravelerGroupsForDisplay(client: Client): TravelerGroup[] {
   ];
 }
 
-/** Ensures `travelerGroups` exists on the client — call before mutating travelers in server actions. */
+/** Ensures `travelerGroups` exists on the client. Call before mutating travelers in server actions. */
 export function migrateToTravelerGroupsIfNeeded(client: Client): void {
   if (client.travelerGroups !== undefined) return;
   const flat = client.associatedTravelers ?? [];

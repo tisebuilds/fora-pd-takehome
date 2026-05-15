@@ -71,19 +71,19 @@ function brandMarkUpper(brand: CreditCard["brand"]): string {
 
 /** Single-line billing: `Street · City, ST ZIP` (table inline card). */
 function billingSingleLineDot(addr: ClientAddress | null | undefined): string {
-  if (!addr) return "—";
+  if (!addr) return "-";
   const street = [addr.line1, addr.line2].map((s) => s?.trim()).filter(Boolean).join(", ");
   const cityState = [addr.city?.trim(), addr.state?.trim()].filter(Boolean).join(", ");
   const zip = addr.zip?.trim() ?? "";
   const tail = [cityState, zip].filter(Boolean).join(" ").trim();
-  if (!street && !tail) return "—";
+  if (!street && !tail) return "-";
   if (!street) return tail;
   if (!tail) return street;
   return `${street} · ${tail}`;
 }
 
 function copyToClipboard(value: string, toastLabel: string) {
-  if (!value || value === "—") {
+  if (!value || value === "-") {
     toast.error("Nothing to copy");
     return;
   }
@@ -135,7 +135,7 @@ type Props = {
    */
   showEmbedChromeActions?: boolean;
   /**
-   * When this number increases, full card details (PAN, etc.) expand — used by the profile header
+   * When this number increases, full card details (PAN, etc.) expand - used by the profile header
    * “jump to credit cards” control so rows are not left in the default collapsed state.
    */
   expandDetailsSignal?: number;
@@ -258,7 +258,7 @@ function CardDetailFields({
   );
 }
 
-/** Number · Exp · CVV (masked) · Name · Billing — matches table embed layout. */
+/** Number · Exp · CVV (masked) · Name · Billing - matches table embed layout. */
 function CreditCardFiveColumnFields({
   card,
   billingAddress,
@@ -304,7 +304,7 @@ function CreditCardFiveColumnFields({
           onClick={() => copyToClipboard(cvvFull, "Security code copied")}
         >
           <span className={colLabel}>CVV</span>
-          <span className={cn(colValue, "font-mono tracking-wide")}>{cvvFull ? cvvDisplay : "—"}</span>
+          <span className={cn(colValue, "font-mono tracking-wide")}>{cvvFull ? cvvDisplay : "-"}</span>
         </button>
         <button
           type="button"
@@ -316,8 +316,8 @@ function CreditCardFiveColumnFields({
         </button>
         <button
           type="button"
-          className={cn(colBtn, billingLine === "—" && "cursor-not-allowed opacity-50 hover:bg-transparent")}
-          disabled={billingLine === "—"}
+          className={cn(colBtn, billingLine === "-" && "cursor-not-allowed opacity-50 hover:bg-transparent")}
+          disabled={billingLine === "-"}
           onClick={() => copyToClipboard(billingLine, "Billing address copied")}
         >
           <span className={colLabel}>Billing</span>
@@ -362,7 +362,7 @@ export function CreditCardRow({
     const expirySpaced = cardExpirySpaced(card.expMonth, card.expYearTwoDigit);
     const cvvFull = card.cvvDemo ?? "";
     const bill = billingSingleLineDot(billingAddress ?? undefined);
-    const block = [panFull, expirySpaced, cvvFull, card.cardholderName, bill === "—" ? "" : bill].join("\n");
+    const block = [panFull, expirySpaced, cvvFull, card.cardholderName, bill === "-" ? "" : bill].join("\n");
     void navigator.clipboard.writeText(block).then(
       () => toast.success("Copied form-ready card text"),
       () => toast.error("Could not copy"),

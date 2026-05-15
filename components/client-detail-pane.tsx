@@ -187,7 +187,7 @@ function ImportantDateRow({
       <div className="min-w-0 flex-1">
         <p className="text-[12px] font-normal leading-tight text-fora-muted">{label}</p>
         <p className="mt-0.5 text-[15px] font-semibold leading-tight tracking-[-0.01em] text-fora-navy">
-          {formatted ?? "—"}
+          {formatted ?? "-"}
         </p>
       </div>
       {countdown ? (
@@ -328,7 +328,7 @@ export function ClientDetailPane({
           </button>
         ) : null}
 
-        {/* Header — extra top padding while scrolled so the sticky title clears the viewport edge */}
+        {/* Header: extra top padding while scrolled so the sticky title clears the viewport edge */}
         <div
           className={cn(
             "sticky top-0 z-10 -mx-6 border-b border-fora-border bg-white px-6 pb-0 transition-[padding-top] duration-200 ease-out lg:-mx-10 lg:px-10",
@@ -433,7 +433,7 @@ export function ClientDetailPane({
 
         {detailTab === "details" ? (
           <div id="client-tab-details-panel" role="tabpanel" aria-labelledby="client-tab-details-trigger">
-            {/* KPI strip — anchor for "View bookings" from list row menus */}
+            {/* KPI strip: anchor for "View bookings" from list row menus */}
             <div id="bookings" className="scroll-mt-6">
               <StatsStrip
                 bookingsCount={client.bookingsCount}

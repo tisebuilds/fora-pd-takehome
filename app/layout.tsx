@@ -28,7 +28,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fora Porta — Clients",
+  title: "Fora Porta: Clients",
   description: "Travel advisor client workspace (design scaffold)",
 };
 

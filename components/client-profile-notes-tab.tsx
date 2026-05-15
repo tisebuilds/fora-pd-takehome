@@ -16,7 +16,7 @@ const toolbarBtnClass =
   "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-fora-border bg-white px-3.5 text-[14px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-black/15 disabled:pointer-events-none disabled:opacity-50";
 
 /** Shown under meeting recordings in this demo (not from real transcription). */
-const DEMO_MEETING_NOTES_TEXT = `Auto-generated meeting notes (demo — not from real speech):
+const DEMO_MEETING_NOTES_TEXT = `Auto-generated meeting notes (demo, not from real speech):
 
 • Reviewed upcoming travel and any open questions from the client.
 • Captured preferences for timing, routing, and seating when discussed.
@@ -243,7 +243,7 @@ export function ClientProfileNotesTab({ client }: Props) {
           type: mr.mimeType || mimeType || "audio/webm",
         });
         if (blob.size === 0) {
-          toast.error("No audio captured — try again.");
+          toast.error("No audio captured. Try again.");
           return;
         }
         const audioObjectUrl = registerObjectUrl(blob);
@@ -387,7 +387,7 @@ export function ClientProfileNotesTab({ client }: Props) {
       <div className="mt-8 space-y-4">
         {sortedCards.length === 0 ? (
           <p className="rounded-[14px] border border-dashed border-fora-border bg-fora-app/40 px-4 py-10 text-center text-[14px] text-fora-muted">
-            No notes yet — add a written note, upload audio, or record a meeting above.
+            No notes yet. Add a written note, upload audio, or record a meeting above.
           </p>
         ) : (
           sortedCards.map((note) => (

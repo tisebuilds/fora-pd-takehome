@@ -41,7 +41,7 @@ function phoneToTelHref(p: ClientPhone): string | null {
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
-/** Shared grid for cards-mode table header (shell) and each data row — five columns: client (avatar+text), email, bookings, actions. */
+/** Shared grid for cards-mode table header (shell) and each data row: five columns (client avatar+text, email, bookings, actions). */
 export const clientListTableGridClass =
   "grid w-full grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_3.5rem_2.75rem] gap-x-3 items-center sm:gap-x-4";
 
@@ -95,7 +95,7 @@ export function ClientListCard({ client, onViewDetails }: Props) {
           {email}
         </a>
       ) : (
-        <span className="text-[13px] font-medium italic text-[#6B7280]">—</span>
+        <span className="text-[13px] font-medium italic text-[#6B7280]">-</span>
       )}
     </div>
   );

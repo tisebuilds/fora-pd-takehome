@@ -36,7 +36,7 @@ export interface CreditCard {
   last4: string;
   expMonth: number;
   expYearTwoDigit: number;
-  /** Billing postal code — prototype seed / fixtures only; production should use a vault. */
+  /** Billing postal code: prototype seed / fixtures only; production should use a vault. */
   billingZip?: string;
   /**
    * Fake card security code for UI prototypes (e.g. test PAN convention).
@@ -115,7 +115,7 @@ export interface TravelerGroup {
    */
   includePrimaryClient?: boolean;
   /**
-   * `CreditCard.id` values on the same client profile — shown under this household on the Companions tab
+   * `CreditCard.id` values on the same client profile, shown under this household on the Companions tab
    * (e.g. hotel folio / room payment).
    */
   paymentCardIds?: string[];
@@ -134,7 +134,7 @@ export interface ClientProfileNote {
   /** Original filename for uploaded audio */
   audioFileName?: string;
   /**
-   * In-memory playback URL from `URL.createObjectURL` — not persisted; cleared on refresh.
+   * In-memory playback URL from `URL.createObjectURL`; not persisted; cleared on refresh.
    * Seeded server data never includes this field.
    */
   audioObjectUrl?: string;
@@ -149,7 +149,7 @@ export interface Client {
   location: string;
   emails: ClientEmail[];
   phones: ClientPhone[];
-  /** null = empty — legacy single blurb; shown as one timeline card when `profileNotes` is absent */
+  /** null = empty: legacy single blurb; shown as one timeline card when `profileNotes` is absent */
   notes: string | null;
   /** Optional seeded timeline; when present, replaces legacy `notes` for the Notes tab */
   profileNotes?: ClientProfileNote[];
@@ -163,16 +163,16 @@ export interface Client {
    */
   flight?: TravelerFlightBookingInfo;
   /**
-   * Legacy flat list — shown as a single group until the first traveler edit/add,
+   * Legacy flat list, shown as a single group until the first traveler edit/add,
    * which migrates data to `travelerGroups` in the demo store.
    */
   associatedTravelers?: AssociatedTraveler[];
-  /** Preferred — grouped companions for trips and joint bookings. */
+  /** Preferred: grouped companions for trips and joint bookings. */
   travelerGroups?: TravelerGroup[];
   bookingsCount: number;
   commissionableValue: number;
   commissions: number;
-  /** Edit form — optional structured name fields */
+  /** Edit form: optional structured name fields */
   nameEdit?: {
     prefix?: string;
     suffix?: string;

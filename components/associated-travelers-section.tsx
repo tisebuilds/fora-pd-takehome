@@ -37,7 +37,7 @@ const NO_GROUP_PAYMENT_IDS: string[] = [];
 const ROW_CARD =
   "flex items-start gap-3 rounded-[14px] border border-fora-border bg-white px-4 py-3.5";
 
-/** Matches the “Primary” label on the primary client row — also used for relationship / pet role. */
+/** Matches the “Primary” label on the primary client row; also used for relationship / pet role. */
 const ROLE_BADGE_CLASS =
   "ml-2 align-middle text-[10px] font-semibold uppercase tracking-[0.06em] text-fora-muted";
 
@@ -535,7 +535,7 @@ export function AssociatedTravelersSection({
                           ) : null}
                           <FlightBookingCardDetails
                             rows={bookingRows}
-                            emptyHint="No traveler IDs on file — use “Edit for booking” to add DOB, gender, passport, contact, and Known Traveler Number."
+                            emptyHint="No traveler IDs on file. Use “Edit for booking” to add DOB, gender, passport, contact, and Known Traveler Number."
                           />
                         </div>
                         <Menu.Root>

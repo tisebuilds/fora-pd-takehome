@@ -36,7 +36,7 @@ export function ClientListRow({ client, active }: Props) {
           {clientDisplayName(client)}
         </span>
         <span className="mt-0.5 block truncate text-[12.5px] text-fora-muted">
-          {formatCityState(client) || "—"}
+          {formatCityState(client) || "-"}
         </span>
       </span>
       <span className="ml-2 flex shrink-0 flex-col items-end text-right">

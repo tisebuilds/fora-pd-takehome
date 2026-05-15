@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-/** Shared field chrome for this form — ~6px radius, light gray border */
+/** Shared field chrome for this form (~6px radius, light gray border) */
 const FORM_CONTROL =
   "h-9 w-full min-w-0 rounded-[6px] border border-[#E5E7EB] bg-white text-sm text-gray-900 shadow-none outline-none transition-colors file:text-sm placeholder:text-gray-400 focus-visible:border-gray-400 focus-visible:ring-2 focus-visible:ring-gray-200/80";
 

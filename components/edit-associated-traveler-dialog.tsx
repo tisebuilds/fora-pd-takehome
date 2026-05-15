@@ -147,6 +147,9 @@ function DateField({
   );
 }
 
+const FORM_FOOTER =
+  "mt-6 flex shrink-0 flex-col-reverse gap-2 border-t border-fora-border pt-5 sm:flex-row sm:justify-end sm:gap-3";
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -314,10 +317,10 @@ function AssociatedTravelerForm({
     companionKind === "pet" ? "pet" : undefined;
 
   return (
-    <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
+          <Dialog.Title className="font-sans text-xl font-semibold tracking-tight text-fora-navy">
             {mode === "add" ? "Add companion" : "Edit companion"}
           </Dialog.Title>
         </div>
@@ -335,15 +338,8 @@ function AssociatedTravelerForm({
         </div>
       </div>
 
-      {companionKind === "person" ? (
-        <p className="mt-2 text-[13px] leading-snug text-fora-muted">
-          Use one field for their legal name as on ID, or type to find a saved client profile — choosing a profile links
-          them and pre-fills booking details. You can still edit everything before saving.
-        </p>
-      ) : null}
-
       <form
-        className="mt-6"
+        className="flex min-h-0 flex-1 flex-col"
         onSubmit={async (e) => {
           e.preventDefault();
           if (companionKind === "pet" && petType === "__other__" && !petTypeCustom.trim()) {
@@ -425,9 +421,9 @@ function AssociatedTravelerForm({
           }
         }}
       >
-        {companionKind === "pet" ? (
-          <div className="mx-auto w-full max-w-[440px] space-y-8">
-            <div className="space-y-5">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-0.5 [-webkit-overflow-scrolling:touch]">
+          {companionKind === "pet" ? (
+            <div className="mx-auto w-full max-w-[440px] space-y-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor={`${reactId}-petname`} className="text-sm font-normal text-fora-muted">
@@ -510,259 +506,224 @@ function AssociatedTravelerForm({
                 />
               </div>
             </div>
+          ) : (
+            <div className="mx-auto w-full max-w-[560px] space-y-5">
+              <div className="relative space-y-1.5">
+                <Label htmlFor={`${reactId}-legal`} className="text-sm font-normal text-fora-muted">
+                  Name — legal name as on ID, or search saved profiles
+                </Label>
+                <Input
+                  id={`${reactId}-legal`}
+                  value={legalName}
+                  onChange={(e) => handleLegalNameChange(e.target.value)}
+                  onKeyDown={handleLegalNameKeyDown}
+                  onFocus={() => {
+                    cancelCloseLinkList();
+                    if (companionLinkableClients.length > 0) setLinkListOpen(true);
+                  }}
+                  onBlur={scheduleCloseLinkList}
+                  className={FIELD}
+                  placeholder="Start typing..."
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={linkListOpen}
+                  aria-controls={companionLinkableClients.length > 0 ? `${reactId}-client-picker` : undefined}
+                  aria-autocomplete="list"
+                  required
+                />
+                {linkListOpen && companionLinkableClients.length > 0 && clientPickerRows.length > 0 ? (
+                  <ul
+                    id={`${reactId}-client-picker`}
+                    role="listbox"
+                    aria-label="Matching client profiles"
+                    className="absolute top-full z-50 mt-1 max-h-[min(240px,40vh)] w-full overflow-y-auto rounded-[10px] border border-fora-border bg-white py-1 shadow-lg outline-none"
+                    onMouseDown={cancelCloseLinkList}
+                  >
+                    {clientPickerRows.map((c, i) => (
+                      <li key={c.id} role="presentation">
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={i === highlightedIndex}
+                          className={cn(
+                            "flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-[14px] outline-none transition-colors",
+                            i === highlightedIndex ? "bg-fora-app text-fora-navy" : "text-fora-navy hover:bg-fora-app/70",
+                          )}
+                          onMouseEnter={() => {
+                            highlightedIndexRef.current = i;
+                            setHighlightedIndex(i);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            pickLinkedClient(c);
+                          }}
+                        >
+                          <span className="font-medium leading-tight">{c.displayName}</span>
+                          <span className="text-[12px] text-fora-muted">{c.location}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : linkListOpen &&
+                  companionLinkableClients.length > 0 &&
+                  legalName.trim() &&
+                  clientPickerRows.length === 0 ? (
+                  <div
+                    className="absolute top-full z-50 mt-1 w-full rounded-[10px] border border-fora-border bg-white px-3 py-2 text-[13px] text-fora-muted shadow-lg"
+                    onMouseDown={cancelCloseLinkList}
+                  >
+                    No profiles match. Keep typing a legal name, or clear the filter.
+                  </div>
+                ) : null}
+              </div>
 
-            <div className="flex flex-col-reverse gap-2 border-t border-fora-border pt-5 sm:flex-row sm:justify-end sm:gap-3">
-              <Dialog.Close
-                type="button"
-                disabled={pending}
-                className={cn(
-                  "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
-                  pending && "pointer-events-none opacity-50",
-                )}
-              >
-                Cancel
-              </Dialog.Close>
-              <Button
-                type="submit"
-                disabled={pending}
-                className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
-              >
-                {mode === "add" ? "Add companion" : "Save"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col gap-10 lg:flex-row lg:items-stretch lg:gap-0">
-              <div className="min-w-0 flex-1 space-y-5 lg:pr-10">
-                <div className="relative space-y-1.5">
-                  <Label htmlFor={`${reactId}-legal`} className="text-sm font-normal text-fora-muted">
-                    Legal name or linked profile
+              <div className="space-y-1.5">
+                <Label htmlFor={`${reactId}-rel`} className="text-sm font-normal text-fora-muted">
+                  Relationship
+                </Label>
+                <Input
+                  id={`${reactId}-rel`}
+                  value={relationship}
+                  onChange={(e) => setRelationship(e.target.value)}
+                  className={FIELD}
+                  placeholder="Spouse, child, colleague..."
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <DateField
+                  id={`${reactId}-dob`}
+                  label="Date of birth"
+                  value={flight.dateOfBirth ?? ""}
+                  onChange={(v) => setFlightField("dateOfBirth", v)}
+                />
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${reactId}-gender`} className="text-sm font-normal text-fora-muted">
+                    Gender
+                  </Label>
+                  <Select
+                    modal={false}
+                    value={genderSelectValue}
+                    onValueChange={(value) => setFlightField("gender", value ?? "")}
+                  >
+                    <SelectTrigger id={`${reactId}-gender`} className={cn(SELECT_TRIGGER, "w-full")} size="default">
+                      <SelectValue placeholder="As on ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {genderRaw && !isPresetGender ? (
+                        <SelectItem value={genderRaw}>{genderRaw}</SelectItem>
+                      ) : null}
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Unspecified">Unspecified</SelectItem>
+                      <SelectItem value="X">X</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${reactId}-em`} className="text-sm font-normal text-fora-muted">
+                    Email
                   </Label>
                   <Input
-                    id={`${reactId}-legal`}
-                    value={legalName}
-                    onChange={(e) => handleLegalNameChange(e.target.value)}
-                    onKeyDown={handleLegalNameKeyDown}
-                    onFocus={() => {
-                      cancelCloseLinkList();
-                      if (companionLinkableClients.length > 0) setLinkListOpen(true);
-                    }}
-                    onBlur={scheduleCloseLinkList}
+                    id={`${reactId}-em`}
+                    type="email"
+                    value={flight.email ?? ""}
+                    onChange={(e) => setFlightField("email", e.target.value)}
                     className={FIELD}
-                    placeholder="Legal name as on ID, or search a saved profile…"
-                    autoComplete="off"
-                    role="combobox"
-                    aria-expanded={linkListOpen}
-                    aria-controls={companionLinkableClients.length > 0 ? `${reactId}-client-picker` : undefined}
-                    aria-autocomplete="list"
-                    required
+                    autoComplete="email"
                   />
-                  {linkedClientId ? (
-                    <p className="text-[11px] leading-snug text-fora-muted">
-                      Linked to a saved client profile. Change this line to something other than that profile’s list name
-                      to unlink and use a typed legal name only.
-                    </p>
-                  ) : companionLinkableClients.length > 0 ? (
-                    <p className="text-[11px] leading-snug text-fora-muted">
-                      Suggestions appear while you type; click a row or press Enter to link and pre-fill optional fields.
-                    </p>
-                  ) : (
-                    <p className="text-[11px] leading-snug text-fora-muted">No other client profiles to link.</p>
-                  )}
-                  {linkListOpen && companionLinkableClients.length > 0 && clientPickerRows.length > 0 ? (
-                    <ul
-                      id={`${reactId}-client-picker`}
-                      role="listbox"
-                      aria-label="Matching client profiles"
-                      className="absolute top-full z-50 mt-1 max-h-[min(240px,40vh)] w-full overflow-y-auto rounded-[10px] border border-fora-border bg-white py-1 shadow-lg outline-none"
-                      onMouseDown={cancelCloseLinkList}
-                    >
-                      {clientPickerRows.map((c, i) => (
-                        <li key={c.id} role="presentation">
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={i === highlightedIndex}
-                            className={cn(
-                              "flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-[14px] outline-none transition-colors",
-                              i === highlightedIndex ? "bg-fora-app text-fora-navy" : "text-fora-navy hover:bg-fora-app/70",
-                            )}
-                            onMouseEnter={() => {
-                              highlightedIndexRef.current = i;
-                              setHighlightedIndex(i);
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              pickLinkedClient(c);
-                            }}
-                          >
-                            <span className="font-medium leading-tight">{c.displayName}</span>
-                            <span className="text-[12px] text-fora-muted">{c.location}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : linkListOpen &&
-                    companionLinkableClients.length > 0 &&
-                    legalName.trim() &&
-                    clientPickerRows.length === 0 ? (
-                    <div
-                      className="absolute top-full z-50 mt-1 w-full rounded-[10px] border border-fora-border bg-white px-3 py-2 text-[13px] text-fora-muted shadow-lg"
-                      onMouseDown={cancelCloseLinkList}
-                    >
-                      No profiles match — keep typing a legal name, or clear the filter.
-                    </div>
-                  ) : null}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${reactId}-rel`} className="text-sm font-normal text-fora-muted">
-                    Relationship
+                  <Label htmlFor={`${reactId}-ph`} className="text-sm font-normal text-fora-muted">
+                    Phone
                   </Label>
                   <Input
-                    id={`${reactId}-rel`}
-                    value={relationship}
-                    onChange={(e) => setRelationship(e.target.value)}
+                    id={`${reactId}-ph`}
+                    value={flight.phone ?? ""}
+                    onChange={(e) => setFlightField("phone", e.target.value)}
                     className={FIELD}
-                    placeholder="Spouse, child, colleague…"
+                    autoComplete="tel"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${reactId}-pp`} className="text-sm font-normal text-fora-muted">
+                    Passport number
+                  </Label>
+                  <Input
+                    id={`${reactId}-pp`}
+                    value={flight.passportNumber ?? ""}
+                    onChange={(e) => setFlightField("passportNumber", e.target.value)}
+                    className={FIELD}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${reactId}-nat`} className="text-sm font-normal text-fora-muted">
+                    Nationality
+                  </Label>
+                  <Input
+                    id={`${reactId}-nat`}
+                    value={flight.nationality ?? ""}
+                    onChange={(e) => setFlightField("nationality", e.target.value)}
+                    className={FIELD}
+                    placeholder="Country"
+                    autoComplete="country"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <DateField
+                  id={`${reactId}-ppe`}
+                  label="Passport expiry"
+                  value={flight.passportExpiry ?? ""}
+                  onChange={(v) => setFlightField("passportExpiry", v)}
+                />
+                <div className="space-y-1.5">
+                  <Label htmlFor={`${reactId}-ktn`} className="text-sm font-normal text-fora-muted">
+                    Known Traveler #
+                  </Label>
+                  <Input
+                    id={`${reactId}-ktn`}
+                    value={flight.knownTravelerNumber ?? ""}
+                    onChange={(e) => setFlightField("knownTravelerNumber", e.target.value)}
+                    className={FIELD}
                     autoComplete="off"
                   />
                 </div>
               </div>
-
-              <div
-                className="hidden w-px shrink-0 self-stretch bg-fora-border lg:block"
-                aria-hidden
-                role="presentation"
-              />
-
-              <div className="min-w-0 flex-1 space-y-5 lg:pl-10">
-                <p className="text-[11px] font-medium tracking-[0.08em] text-fora-muted">Optional</p>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <DateField
-                    id={`${reactId}-dob`}
-                    label="Date of birth"
-                    value={flight.dateOfBirth ?? ""}
-                    onChange={(v) => setFlightField("dateOfBirth", v)}
-                  />
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-gender`} className="text-sm font-normal text-fora-muted">
-                      Gender
-                    </Label>
-                    <Select
-                      modal={false}
-                      value={genderSelectValue}
-                      onValueChange={(value) => setFlightField("gender", value ?? "")}
-                    >
-                      <SelectTrigger id={`${reactId}-gender`} className={cn(SELECT_TRIGGER, "w-full")} size="default">
-                        <SelectValue placeholder="As on ID" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {genderRaw && !isPresetGender ? (
-                          <SelectItem value={genderRaw}>{genderRaw}</SelectItem>
-                        ) : null}
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Unspecified">Unspecified</SelectItem>
-                        <SelectItem value="X">X</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-em`} className="text-sm font-normal text-fora-muted">
-                      Email
-                    </Label>
-                    <Input
-                      id={`${reactId}-em`}
-                      type="email"
-                      value={flight.email ?? ""}
-                      onChange={(e) => setFlightField("email", e.target.value)}
-                      className={FIELD}
-                      autoComplete="email"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-ph`} className="text-sm font-normal text-fora-muted">
-                      Phone
-                    </Label>
-                    <Input
-                      id={`${reactId}-ph`}
-                      value={flight.phone ?? ""}
-                      onChange={(e) => setFlightField("phone", e.target.value)}
-                      className={FIELD}
-                      autoComplete="tel"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-pp`} className="text-sm font-normal text-fora-muted">
-                      Passport number
-                    </Label>
-                    <Input
-                      id={`${reactId}-pp`}
-                      value={flight.passportNumber ?? ""}
-                      onChange={(e) => setFlightField("passportNumber", e.target.value)}
-                      className={FIELD}
-                      autoComplete="off"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-nat`} className="text-sm font-normal text-fora-muted">
-                      Nationality
-                    </Label>
-                    <Input
-                      id={`${reactId}-nat`}
-                      value={flight.nationality ?? ""}
-                      onChange={(e) => setFlightField("nationality", e.target.value)}
-                      className={FIELD}
-                      placeholder="Country"
-                      autoComplete="country"
-                    />
-                  </div>
-                  <DateField
-                    id={`${reactId}-ppe`}
-                    label="Passport expiry"
-                    value={flight.passportExpiry ?? ""}
-                    onChange={(v) => setFlightField("passportExpiry", v)}
-                  />
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`${reactId}-ktn`} className="text-sm font-normal text-fora-muted">
-                      Known Traveler #
-                    </Label>
-                    <Input
-                      id={`${reactId}-ktn`}
-                      value={flight.knownTravelerNumber ?? ""}
-                      onChange={(e) => setFlightField("knownTravelerNumber", e.target.value)}
-                      className={FIELD}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
+          )}
+        </div>
 
-            <div className="mt-10 flex flex-col-reverse gap-2 border-t border-fora-border pt-5 sm:mt-8 sm:flex-row sm:justify-end sm:gap-3">
-              <Dialog.Close
-                type="button"
-                disabled={pending}
-                className={cn(
-                  "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
-                  pending && "pointer-events-none opacity-50",
-                )}
-              >
-                Cancel
-              </Dialog.Close>
-              <Button
-                type="submit"
-                disabled={pending}
-                className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
-              >
-                {mode === "add" ? "Add companion" : "Save"}
-              </Button>
-            </div>
-          </>
-        )}
+        <div className={FORM_FOOTER}>
+          <Dialog.Close
+            type="button"
+            disabled={pending}
+            className={cn(
+              "inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-fora-border bg-white px-5 text-[15px] font-medium text-fora-navy outline-none transition-colors hover:bg-fora-app focus-visible:ring-2 focus-visible:ring-fora-border/60",
+              pending && "pointer-events-none opacity-50",
+            )}
+          >
+            Cancel
+          </Dialog.Close>
+          <Button
+            type="submit"
+            disabled={pending}
+            className="h-10 rounded-full bg-black px-6 text-[15px] font-medium text-white hover:bg-gray-800"
+          >
+            {mode === "add" ? "Add companion" : "Save"}
+          </Button>
+        </div>
       </form>
-    </>
+    </div>
   );
 }
 
@@ -807,24 +768,26 @@ export function EditAssociatedTravelerDialog({
         <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Popup
             className={cn(
-              "max-h-[min(92vh,800px)] w-full overflow-y-auto rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 sm:p-8",
-              narrowPetLayout ? "max-w-[min(92vw,520px)]" : "max-w-[min(92vw,800px)]",
+              "flex max-h-[min(92vh,800px)] min-h-0 w-full flex-col overflow-hidden rounded-[16px] border border-fora-border bg-white p-6 shadow-lg outline-none transition-[opacity,transform] duration-150 data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0 data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0 sm:p-8",
+              narrowPetLayout ? "max-w-[min(92vw,520px)]" : "max-w-[min(92vw,640px)]",
             )}
           >
             {showForm ? (
-              <AssociatedTravelerForm
-                key={formKey}
-                clientId={clientId}
-                groupId={groupId}
-                mode={mode}
-                traveler={traveler}
-                companionLinkableClients={companionLinkableClients}
-                onSaved={onSaved}
-                onClose={close}
-                onPetLayoutChange={setNarrowPetLayout}
-              />
+              <div className="flex min-h-0 w-full flex-1 flex-col">
+                <AssociatedTravelerForm
+                  key={formKey}
+                  clientId={clientId}
+                  groupId={groupId}
+                  mode={mode}
+                  traveler={traveler}
+                  companionLinkableClients={companionLinkableClients}
+                  onSaved={onSaved}
+                  onClose={close}
+                  onPetLayoutChange={setNarrowPetLayout}
+                />
+              </div>
             ) : (
-              <Dialog.Title className="font-sans text-lg font-semibold tracking-tight text-fora-navy">
+              <Dialog.Title className="font-sans text-xl font-semibold tracking-tight text-fora-navy">
                 {mode === "add" ? "Add companion" : "Edit companion"}
               </Dialog.Title>
             )}
