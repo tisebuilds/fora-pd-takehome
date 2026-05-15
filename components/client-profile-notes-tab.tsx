@@ -337,60 +337,55 @@ export function ClientProfileNotesTab({ client }: Props) {
   return (
     <div id="client-tab-notes-panel" role="tabpanel" aria-labelledby="client-tab-notes-trigger">
       <div className="mt-6 flex flex-wrap gap-2">
-        <button type="button" className={toolbarBtnClass} onClick={openWrittenDialog}>
-          <PenLine className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
-          Type note
-        </button>
-        <button
-          type="button"
-          className={toolbarBtnClass}
-          onClick={() => uploadInputRef.current?.click()}
-        >
-          <Upload className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
-          Upload audio
-        </button>
-        <input
-          ref={uploadInputRef}
-          type="file"
-          accept="audio/*"
-          className="sr-only"
-          aria-hidden
-          tabIndex={-1}
-          onChange={onUploadAudio}
-        />
-        {!recording ? (
-          <button type="button" className={toolbarBtnClass} onClick={startMeetingRecording}>
-            <Mic className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
-            Record meeting
+          <button type="button" className={toolbarBtnClass} onClick={openWrittenDialog}>
+            <PenLine className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
+            Type note
           </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-fora-border bg-fora-app px-3 py-2">
-            <span
-              className="inline-flex size-2.5 shrink-0 rounded-full bg-red-500"
-              aria-hidden
-            />
-            <span className="text-[14px] font-medium tabular-nums text-fora-navy">
-              Recording {formatElapsed(recordSeconds)}
-            </span>
-            <button
-              type="button"
-              onClick={stopMeetingRecording}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-fora-navy px-3 text-[13px] font-medium text-white hover:opacity-90"
-            >
-              <Square className="size-3.5 fill-current" strokeWidth={0} aria-hidden />
-              Stop & save
+          <button
+            type="button"
+            className={toolbarBtnClass}
+            onClick={() => uploadInputRef.current?.click()}
+          >
+            <Upload className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
+            Upload audio
+          </button>
+          <input
+            ref={uploadInputRef}
+            type="file"
+            accept="audio/*"
+            className="sr-only"
+            aria-hidden
+            tabIndex={-1}
+            onChange={onUploadAudio}
+          />
+          {!recording ? (
+            <button type="button" className={toolbarBtnClass} onClick={startMeetingRecording}>
+              <Mic className="size-4 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
+              Record meeting
             </button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-fora-border bg-fora-app px-3 py-2">
+              <span
+                className="inline-flex size-2.5 shrink-0 rounded-full bg-red-500"
+                aria-hidden
+              />
+              <span className="text-[14px] font-medium tabular-nums text-fora-navy">
+                Recording {formatElapsed(recordSeconds)}
+              </span>
+              <button
+                type="button"
+                onClick={stopMeetingRecording}
+                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-fora-navy px-3 text-[13px] font-medium text-white hover:opacity-90"
+              >
+                <Square className="size-3.5 fill-current" strokeWidth={0} aria-hidden />
+                Stop & save
+              </button>
+            </div>
+          )}
+        </div>
 
-      <div className="mt-8 space-y-4">
-        {sortedCards.length === 0 ? (
-          <p className="rounded-[14px] border border-dashed border-fora-border bg-fora-app/40 px-4 py-10 text-center text-[14px] text-fora-muted">
-            No notes yet. Add a written note, upload audio, or record a meeting above.
-          </p>
-        ) : (
-          sortedCards.map((note) => (
+        <div className="mt-8 space-y-4">
+          {sortedCards.map((note) => (
             <article
               key={note.id}
               className="rounded-[14px] border border-fora-border bg-white px-4 py-4"
@@ -435,8 +430,7 @@ export function ClientProfileNotesTab({ client }: Props) {
                 />
               ) : null}
             </article>
-          ))
-        )}
+          ))}
       </div>
 
       <Dialog.Root

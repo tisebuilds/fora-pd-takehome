@@ -477,7 +477,7 @@ export function AssociatedTravelersSection({
             }
           >
             <InlineSectionEmptyBox>
-              <p className="py-3.5 pl-0 pr-4 text-[14px] leading-snug text-fora-muted">
+              <p className="py-3.5 pl-4 pr-4 text-[14px] leading-snug text-fora-muted">
                 Add people or pets with their booking details
               </p>
             </InlineSectionEmptyBox>
