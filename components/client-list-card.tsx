@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, Wallet } from "lucide-react";
+import { ArrowRight, CreditCard, Mail, MoreHorizontal, Phone, Receipt, UserRound, Wallet } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
-import type { Client, ClientPhone } from "@/lib/types";
+import type { AssociatedTraveler, Client, ClientPhone } from "@/lib/types";
 import { clientDisplayName, clientInitials, formatPhoneDisplay } from "@/lib/format";
+import { getTravelerGroupsForDisplay } from "@/lib/data";
 import { AddCreditCardDialog } from "@/components/add-credit-card-dialog";
 import { CreditCardRow } from "@/components/credit-card-row";
 import {
@@ -38,6 +39,47 @@ function phoneToTelHref(p: ClientPhone): string | null {
   return `tel:+${dial}${national}`;
 }
 
+function companionInlineName(t: AssociatedTraveler): string {
+  if (t.companionKind === "pet") return `${t.firstName} (${t.lastName})`;
+  return `${t.firstName} ${t.lastName}`;
+}
+
+function companionInlineInitials(t: AssociatedTraveler): string {
+  if (t.companionKind === "pet") {
+    const s = t.firstName.replace(/[^a-zA-Z0-9]/g, "");
+    return (s.slice(0, 2) || "?").toUpperCase();
+  }
+  return clientInitials({ firstName: t.firstName, lastName: t.lastName });
+}
+
+function companionInlineRelationship(t: AssociatedTraveler): string | null {
+  if (t.companionKind === "pet") return null;
+  const rel = t.relationship?.trim();
+  return rel && rel.length > 0 ? rel : null;
+}
+
+function companionInlinePetNotes(t: AssociatedTraveler): string | null {
+  if (t.companionKind !== "pet") return null;
+  const notes = t.petNotes?.trim();
+  return notes && notes.length > 0 ? notes : null;
+}
+
+/** `TravelerFlightBookingInfo.dateOfBirth` is stored as YYYY-MM-DD in seed data. */
+function formatCompanionFlightDob(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const d = new Date(`${trimmed}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return trimmed;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function companionInlineDobLine(t: AssociatedTraveler): string | null {
+  const raw = t.flight?.dateOfBirth?.trim();
+  if (!raw) return null;
+  const formatted = formatCompanionFlightDob(raw);
+  return `DOB ${formatted ?? raw}`;
+}
+
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-fora-navy outline-none transition-colors data-highlighted:bg-fora-app";
 
@@ -51,6 +93,7 @@ const navCellClass =
 export function ClientListCard({ client, onViewDetails }: Props) {
   const [addCreditOpen, setAddCreditOpen] = useState(false);
   const [creditPanelOpen, setCreditPanelOpen] = useState(false);
+  const [companionsPanelOpen, setCompanionsPanelOpen] = useState(false);
   const phone = primaryPhone(client);
   const phoneText = phone ? formatPhoneDisplay(phone) : null;
   const telHref = phone ? phoneToTelHref(phone) : null;
@@ -58,6 +101,13 @@ export function ClientListCard({ client, onViewDetails }: Props) {
 
   const profileHref = `/clients/${client.id}`;
   const bookingsHref = `${profileHref}#bookings`;
+
+  const travelerGroups = useMemo(() => getTravelerGroupsForDisplay(client), [client]);
+  const groupsWithCompanions = useMemo(
+    () => travelerGroups.filter((g) => g.travelers.length > 0),
+    [travelerGroups],
+  );
+  const showCompanionGroupLabels = groupsWithCompanions.length > 1;
 
   const avatarCell = (
     <div
@@ -173,6 +223,10 @@ export function ClientListCard({ client, onViewDetails }: Props) {
                     <Receipt className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     View bookings
                   </Menu.LinkItem>
+                  <Menu.Item onClick={() => setCompanionsPanelOpen(true)} className={menuItemClass}>
+                    <UserRound className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
+                    Show companions inline
+                  </Menu.Item>
                   <Menu.Item onClick={() => setCreditPanelOpen(true)} className={menuItemClass}>
                     <Wallet className="size-3.5 shrink-0 opacity-70" strokeWidth={2} aria-hidden />
                     View credit card details
@@ -197,6 +251,90 @@ export function ClientListCard({ client, onViewDetails }: Props) {
               </Menu.Positioner>
             </Menu.Portal>
           </Menu.Root>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+          companionsPanelOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="min-h-0">
+          <div
+            className="border-t border-[#E5E7EB] px-4 pb-3 pt-3 sm:pb-3.5 sm:pt-3.5"
+            inert={companionsPanelOpen ? undefined : true}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[11px] font-medium uppercase tracking-wide text-[#6B7280]">Companions</h3>
+              {companionsPanelOpen ? (
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm text-[13px] font-medium text-[#9CA3AF] no-underline outline-none transition-colors hover:text-[#6B7280] focus-visible:ring-2 focus-visible:ring-fora-navy/20"
+                  onClick={() => setCompanionsPanelOpen(false)}
+                >
+                  Hide
+                </button>
+              ) : null}
+            </div>
+            {groupsWithCompanions.length === 0 ? (
+              <InlineSectionEmptyBox className="mt-2 px-4 py-3.5 text-[13px] leading-snug text-[#6B7280]">
+                No companions on file.{" "}
+                <Link href={profileHref} className="font-medium text-fora-link no-underline hover:opacity-80">
+                  Open profile
+                </Link>
+              </InlineSectionEmptyBox>
+            ) : (
+              <div className="mt-2 flex flex-col gap-3">
+                {groupsWithCompanions.map((group) => (
+                  <div key={group.id}>
+                    {showCompanionGroupLabels ? (
+                      <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-[#6B7280]">
+                        {group.name}
+                      </p>
+                    ) : null}
+                    <div className="flex flex-col divide-y divide-[#E5E7EB] rounded-lg border border-[#E5E7EB] bg-[#FAFAFA]">
+                      {group.travelers.map((t) => {
+                        const relationship = companionInlineRelationship(t);
+                        const petNotes = companionInlinePetNotes(t);
+                        const dobLine = companionInlineDobLine(t);
+                        return (
+                          <div key={t.id} className="flex items-start gap-3 px-3 py-2.5 sm:px-3.5 sm:py-3">
+                            <div
+                              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#F3E8D6] text-[12px] font-semibold text-[#111827]"
+                              aria-hidden
+                            >
+                              {companionInlineInitials(t)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                <span className="min-w-0 truncate text-[13px] font-semibold text-[#111827]">
+                                  {companionInlineName(t)}
+                                </span>
+                                {relationship ? (
+                                  <span className="shrink-0 text-[12px] leading-snug text-[#6B7280]">
+                                    {relationship}
+                                  </span>
+                                ) : null}
+                              </div>
+                              {petNotes ? (
+                                <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-[#6B7280]">
+                                  {petNotes}
+                                </p>
+                              ) : null}
+                              {dobLine ? (
+                                <p className="mt-0.5 text-[12px] leading-snug text-[#6B7280]">{dobLine}</p>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
